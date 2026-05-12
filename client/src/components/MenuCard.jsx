@@ -16,7 +16,7 @@ const FALLBACKS = {
 };
 
 export default function MenuCard({ item }) {
-  if (!item) return null;
+  if (!item) return null;  // ← yeh line add karo
   const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState(item.sizes?.length ? item.sizes[0] : null);
 
