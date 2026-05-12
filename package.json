@@ -1,0 +1,15 @@
+{
+  "name": "bariis-pizza-house",
+  "version": "1.0.0",
+  "description": "Bariis & Pizza House - Full Stack Restaurant Website",
+  "scripts": {
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm start\"",
+    "start": "cd server && npm start",
+    "build": "cd client && npm run build",
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
