@@ -1,107 +1,185 @@
-import React, { useState } from 'react';
-import { IconPlus, IconStar } from '../components/Icons';
-import { useCart } from '../context/CartContext';
-import toast from 'react-hot-toast';
+import React, { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { IconSearch } from '../components/Icons';
+import MenuCard from '../components/MenuCard';
+import { getMenuItems } from '../services/api';
 
-// Real Unsplash food images by category (used as fallback)
-const FALLBACKS = {
-  'somali-rice':       'https://images.unsplash.com/photo-1574484284002-952d92456975?w=500&q=80',
-  'somali-specialties':'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80',
-  'pizza':             'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80',
-  'sambusa-snacks':    'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500&q=80',
-  'sides':             'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80',
-  'drinks':            'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&q=80',
-  'combos':            'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500&q=80',
-  'family-platters':   'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80',
+const SECTIONS = [
+  { key: 'all',             label: 'All Items',          img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70' },
+  { key: 'somali-rice',     label: 'Somali Dishes',      img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&q=70' },
+  { key: 'somali-specialties', label: 'Specialties',     img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=70' },
+  { key: 'pizza',           label: 'Halal Pizza',        img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=70' },
+  { key: 'sambusa-snacks',  label: 'Sambusa & Snacks',   img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&q=70' },
+  { key: 'drinks',          label: 'Drinks & Tea',       img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=70' },
+  { key: 'combos',          label: 'Lunch Specials',     img: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=70' },
+  { key: 'family-platters', label: 'Family Platters',    img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=70' },
+];
+
+const SEC_HEADERS = {
+  'somali-rice':       { title: 'Somali Dishes', sub: 'Fragrant rice dishes with tender halal meat', img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=1200&q=80' },
+  'somali-specialties':{ title: 'Somali Specialties', sub: 'Traditional Somali meat and sauce dishes', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=80' },
+  'pizza':             { title: 'Halal Pizza', sub: 'Fresh dough, premium halal toppings, three sizes', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=80' },
+  'sambusa-snacks':    { title: 'Sambusa & Snacks', sub: 'Crispy golden pastries, fried to perfection', img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1200&q=80' },
+  'drinks':            { title: 'Drinks & Tea', sub: 'Somali spiced tea, juices and cold drinks', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=1200&q=80' },
+  'combos':            { title: 'Lunch Specials & Combos', sub: 'Best value meals — includes drink', img: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=1200&q=80' },
+  'family-platters':   { title: 'Family Platters', sub: 'Generous portions to feed the whole family', img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200&q=80' },
 };
 
-export default function MenuCard({ item }) {
-  const { addItem } = useCart();
-  const [selectedSize, setSelectedSize] = useState(item.sizes?.length ? item.sizes[0] : null);
+export default function MenuPage() {
+  const [params, setParams] = useSearchParams();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [active, setActive] = useState(params.get('cat') || 'all');
+  const sectionRefs = useRef({});
 
-  const price = selectedSize ? selectedSize.price : item.price;
+  useEffect(() => {
+    getMenuItems({ available: true })
+      .then(r => setItems(r.data))
+      .finally(() => setLoading(false));
+  }, []);
 
-  // Only use image if it's a valid Cloudinary/external HTTPS URL
-  // Localhost URLs are ignored — they don't work on Vercel
-  const isValidImage = item.image &&
-    item.image.startsWith('https') &&
-    !item.image.includes('localhost');
-  const imgSrc = isValidImage
-    ? item.image
-    : (FALLBACKS[item.category] || FALLBACKS['somali-rice']);
+  // Filter
+  const filtered = items.filter(item => {
+    const matchCat = active === 'all' || item.category === active;
+    const matchQ = !search || item.name.toLowerCase().includes(search.toLowerCase()) || item.description.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchQ;
+  });
 
-  const handleAdd = () => {
-    addItem({ _id: item._id, name: item.name, price, image: item.image, size: selectedSize?.label || null });
-    toast.success(`${item.name} added to cart`);
+  const grouped = SECTIONS.filter(s => s.key !== 'all').map(s => ({
+    ...s,
+    items: filtered.filter(i => i.category === s.key),
+  })).filter(g => active === 'all' ? g.items.length > 0 : g.key === active);
+
+  const switchTab = (key) => {
+    setActive(key);
+    setParams(key !== 'all' ? { cat: key } : {});
+    if (key !== 'all') {
+      setTimeout(() => {
+        sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
   };
 
   return (
-    <article className="menu-card">
+    <div className="menu-page pt-nav">
       <style>{`
-        .menu-card { background:var(--white);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);border:1px solid rgba(0,0,0,0.05);display:flex;flex-direction:column;transition:all var(--dur) var(--ease); }
-        .menu-card:hover { transform:translateY(-5px);box-shadow:var(--sh-md); }
-        .mc-img { position:relative;height:190px;overflow:hidden;background:#f0ece4; }
-        .mc-img img { width:100%;height:100%;object-fit:cover;transition:transform 0.45s ease; }
-        .menu-card:hover .mc-img img { transform:scale(1.06); }
-        .mc-badges { position:absolute;top:10px;left:10px;display:flex;gap:6px;flex-wrap:wrap; }
-        .mc-body { padding:1rem 1.1rem 1.1rem;flex:1;display:flex;flex-direction:column; }
-        .mc-name { font-family:var(--ff-display);font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:4px;line-height:1.25; }
-        .mc-desc { font-size:0.82rem;color:var(--muted);line-height:1.6;flex:1; }
-        .mc-sizes { display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0; }
-        .size-pill { padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-s);font-size:0.73rem;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:all 0.2s;background:none; }
-        .size-pill.active { background:var(--green);color:var(--gold);border-color:var(--green); }
-        .mc-footer { display:flex;align-items:center;justify-content:space-between;margin-top:14px; }
-        .mc-price { font-family:var(--ff-display);font-size:1.35rem;font-weight:700;color:var(--green); }
-        .mc-add { display:flex;align-items:center;gap:5px;padding:8px 16px;border-radius:50px;background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--green);font-weight:700;font-size:0.8rem;transition:all 0.2s;cursor:pointer;border:none;font-family:var(--ff-body); }
-        .mc-add:hover { transform:scale(1.05);box-shadow:var(--sh-gold); }
-        .mc-unavail { font-size:0.78rem;color:var(--muted);padding:6px 12px;border:1px solid #ddd;border-radius:20px; }
+        .menu-page { min-height:100vh; }
+        /* Hero */
+        .menu-hero { position:relative;height:320px;display:flex;align-items:flex-end;overflow:hidden; }
+        .menu-hero-bg { position:absolute;inset:0; }
+        .menu-hero-bg img { width:100%;height:100%;object-fit:cover; }
+        .menu-hero-overlay { position:absolute;inset:0;background:linear-gradient(0deg,rgba(14,40,24,0.92) 0%,rgba(14,40,24,0.4) 100%); }
+        .menu-hero-text { position:relative;z-index:2;padding:2.5rem; }
+        .menu-hero-text h1 { font-family:var(--ff-display);font-size:clamp(2rem,4vw,3rem);font-weight:700;color:white; }
+        .menu-hero-text p { color:rgba(255,255,255,0.65);margin-top:6px; }
+        /* Halal bar */
+        .halal-bar { background:var(--green);color:var(--gold);text-align:center;padding:10px 16px;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;border-bottom:1px solid var(--border); }
+        /* Sticky controls */
+        .menu-controls { position:sticky;top:var(--nav-h);z-index:100;background:var(--white);border-bottom:1px solid rgba(0,0,0,0.07);box-shadow:0 2px 16px rgba(0,0,0,0.06); }
+        .menu-search { padding:14px 24px;border-bottom:1px solid rgba(0,0,0,0.06); }
+        .search-wrap { max-width:480px;margin:0 auto;display:flex;align-items:center;gap:10px;background:var(--cream);border:1.5px solid var(--cream-dk);border-radius:50px;padding:10px 18px;transition:border-color 0.2s; }
+        .search-wrap:focus-within { border-color:var(--gold); }
+        .search-wrap input { flex:1;border:none;background:none;outline:none;font-size:0.9rem;font-family:var(--ff-body); }
+        .search-wrap svg { color:var(--muted); }
+        .cat-tabs { display:flex;gap:0;overflow-x:auto;scrollbar-width:none;padding:0 8px; }
+        .cat-tabs::-webkit-scrollbar { display:none; }
+        .cat-tab { flex-shrink:0;display:flex;align-items:center;gap:8px;padding:14px 18px;font-size:0.84rem;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.2s;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--ff-body);white-space:nowrap; }
+        .cat-tab img { width:22px;height:22px;border-radius:4px;object-fit:cover; }
+        .cat-tab:hover { color:var(--green); }
+        .cat-tab.active { color:var(--green);border-bottom-color:var(--gold); }
+        /* Menu body */
+        .menu-body { max-width:1180px;margin:0 auto;padding:3rem 24px 5rem; }
+        /* Section block */
+        .menu-section { margin-bottom:4rem; }
+        .section-head { position:relative;border-radius:var(--r-lg);overflow:hidden;height:160px;margin-bottom:1.75rem; }
+        .section-head img { width:100%;height:100%;object-fit:cover; }
+        .section-head-overlay { position:absolute;inset:0;background:linear-gradient(100deg,rgba(14,40,24,0.88),rgba(14,40,24,0.3)); }
+        .section-head-content { position:absolute;inset:0;display:flex;align-items:center;padding:0 2rem;gap:1rem; }
+        .section-head-content h2 { font-family:var(--ff-display);font-size:1.8rem;font-weight:700;color:white; }
+        .section-head-content p { color:rgba(255,255,255,0.65);font-size:0.85rem;margin-top:3px; }
+        .section-item-count { margin-left:auto;background:rgba(201,168,76,0.25);border:1px solid var(--border-s);color:var(--gold-lt);padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:600;flex-shrink:0; }
+        .items-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px; }
+        /* Empty */
+        .empty-state { text-align:center;padding:5rem 2rem;color:var(--muted); }
+        .empty-state svg { margin:0 auto 1.5rem; }
+        .empty-state h3 { font-family:var(--ff-display);font-size:1.5rem;color:var(--green);margin-bottom:8px; }
+        @media(max-width:640px) { .menu-hero { height:220px; } .section-head { height:120px; } }
       `}</style>
 
-      <div className="mc-img">
-        <img src={imgSrc} alt={item.name} loading="lazy"/>
-        <div className="mc-badges">
-          <span className="badge badge-halal">
-            <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-              <circle cx="4.5" cy="4.5" r="4" stroke="#C9A84C"/>
-              <text x="4.5" y="7" textAnchor="middle" fontSize="3.5" fill="#C9A84C" fontFamily="serif">ح</text>
-            </svg>
-            Halal
-          </span>
-          {item.featured && (
-            <span className="badge badge-new">
-              <IconStar size={9} filled color="var(--green)"/> Featured
-            </span>
-          )}
-          {item.tags?.includes('vegetarian') && <span className="badge badge-veg">Vegetarian</span>}
+      {/* Hero */}
+      <div className="menu-hero">
+        <div className="menu-hero-bg">
+          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1400&q=80" alt="Our Menu"/>
+        </div>
+        <div className="menu-hero-overlay"/>
+        <div className="menu-hero-text">
+          <div className="section-label" style={{ marginBottom:'10px' }}>Bariis &amp; Pizza House</div>
+          <h1>Our Full Menu</h1>
+          <p>100% Halal · Fresh Daily · New Minas, Nova Scotia</p>
         </div>
       </div>
 
-      <div className="mc-body">
-        <div className="mc-name">{item.name}</div>
-        <div className="mc-desc">{item.description}</div>
+      {/* Halal Notice */}
+      <div className="halal-bar">
+        Every item on our menu is prepared with 100% Halal certified ingredients — fresh, authentic, made with love
+      </div>
 
-        {item.sizes?.length > 0 && (
-          <div className="mc-sizes">
-            {item.sizes.map(s => (
-              <button
-                key={s.label}
-                className={`size-pill${selectedSize?.label === s.label ? ' active' : ''}`}
-                onClick={() => setSelectedSize(s)}
-              >
-                {s.label} — ${s.price.toFixed(2)}
-              </button>
-            ))}
+      {/* Controls */}
+      <div className="menu-controls">
+        <div className="menu-search">
+          <div className="search-wrap">
+            <IconSearch size={16}/>
+            <input
+              placeholder="Search dishes, e.g. Bariis, Pizza, Sambusa..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
           </div>
-        )}
-
-        <div className="mc-footer">
-          <span className="mc-price">${price.toFixed(2)}</span>
-          {item.available
-            ? <button className="mc-add" onClick={handleAdd}><IconPlus size={13}/> Add to Cart</button>
-            : <span className="mc-unavail">Currently Unavailable</span>
-          }
+        </div>
+        <div className="cat-tabs">
+          {SECTIONS.map(s => (
+            <button key={s.key} className={`cat-tab${active === s.key ? ' active' : ''}`} onClick={() => switchTab(s.key)}>
+              <img src={s.img} alt={s.label}/>
+              {s.label}
+            </button>
+          ))}
         </div>
       </div>
-    </article>
+
+      {/* Body */}
+      <div className="menu-body">
+        {loading ? (
+          <div className="spinner"/>
+        ) : grouped.length === 0 ? (
+          <div className="empty-state">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="27" stroke="var(--cream-dk)" strokeWidth="2"/><path d="M20 28h16M28 20v16" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round"/></svg>
+            <h3>No dishes found</h3>
+            <p>Try a different search term or category.</p>
+          </div>
+        ) : grouped.map(group => {
+          const hdr = SEC_HEADERS[group.key] || {};
+          return (
+            <div key={group.key} className="menu-section" ref={el => sectionRefs.current[group.key] = el}>
+              {/* Section Header with image */}
+              <div className="section-head">
+                <img src={hdr.img || group.img} alt={group.label} loading="lazy"/>
+                <div className="section-head-overlay"/>
+                <div className="section-head-content">
+                  <div>
+                    <h2>{hdr.title || group.label}</h2>
+                    {hdr.sub && <p>{hdr.sub}</p>}
+                  </div>
+                  <span className="section-item-count">{group.items.length} items</span>
+                </div>
+              </div>
+              <div className="items-grid">
+                {group.items.map(item => <MenuCard key={item._id} item={item}/>)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

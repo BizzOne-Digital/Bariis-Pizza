@@ -3,7 +3,9 @@ import { IconPlus, IconStar } from './Icons';
 import { useCart } from '../context/CartContext';
 import toast from 'react-hot-toast';
 
-// Real Unsplash food images by category (used as fallback)
+const API = process.env.REACT_APP_API_URL?.replace('/api','') || 'http://localhost:5000';
+
+// Real Unsplash food images by category
 const FALLBACKS = {
   'somali-rice':       'https://images.unsplash.com/photo-1574484284002-952d92456975?w=500&q=80',
   'somali-specialties':'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80',
@@ -16,19 +18,12 @@ const FALLBACKS = {
 };
 
 export default function MenuCard({ item }) {
-  if (!item) return null;  // ← yeh line add karo
   const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState(item.sizes?.length ? item.sizes[0] : null);
 
   const price = selectedSize ? selectedSize.price : item.price;
-
-  // Only use image if it's a valid Cloudinary/external HTTPS URL
-  // Localhost URLs are ignored — they don't work on Vercel
-  const isValidImage = item.image &&
-    item.image.startsWith('https') &&
-    !item.image.includes('localhost');
-  const imgSrc = isValidImage
-    ? item.image
+  const imgSrc = item.image
+    ? (item.image.startsWith('http') ? item.image : `${API}${item.image}`)
     : (FALLBACKS[item.category] || FALLBACKS['somali-rice']);
 
   const handleAdd = () => {
