@@ -11,6 +11,11 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Test Route
+app.get('/', (req, res) => {
+  res.send('Bariis Pizza API Running 🚀');
+});
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/menu', require('./routes/menu'));
@@ -19,9 +24,11 @@ app.use('/api/settings', require('./routes/settings'));
 
 // MongoDB connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/bariis_pizza';
+
 mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected');
+
     app.listen(process.env.PORT || 5000, () =>
       console.log(`🚀 Server running on port ${process.env.PORT || 5000}`)
     );
