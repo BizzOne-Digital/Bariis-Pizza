@@ -403,7 +403,7 @@ export default function AdminDashboard() {
                           <td>
                             <div className="item-row">
                               <div className="item-thumb">
-                                <img src={`https://images.unsplash.com/photo-1574484284002-952d92456975?w=80&q=60`} alt={item.name}/>
+                                <img src={item.image || `https://images.unsplash.com/photo-1574484284002-952d92456975?w=80&q=60`} alt={item.name}/>
                               </div>
                               <div>
                                 <div className="item-name">{item.name}</div>

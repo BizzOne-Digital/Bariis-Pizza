@@ -1,25 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const MenuItem = require('../models/MenuItem');
 const { protect } = require('../middleware/auth');
 
-// Multer setup for image upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../uploads/menu');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname.replace(/\s/g, '-')}`);
-  }
+// ── Cloudinary config ──────────────────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+// ── Multer → Cloudinary storage ────────────────────────────────────────────
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'bariis-pizza/menu',   // images saved under this folder in Cloudinary
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 800, height: 600, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
+  },
+});
+
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
-// Public: Get all menu items
+// ── Public: Get all menu items ─────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
     const { category, available } = req.query;
@@ -33,7 +39,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Public: Get featured items
+// ── Public: Get featured items ─────────────────────────────────────────────
 router.get('/featured', async (req, res) => {
   try {
     const items = await MenuItem.find({ featured: true, available: true }).limit(8);
@@ -43,7 +49,7 @@ router.get('/featured', async (req, res) => {
   }
 });
 
-// Public: Get single item
+// ── Public: Get single item ────────────────────────────────────────────────
 router.get('/:id', async (req, res) => {
   try {
     const item = await MenuItem.findById(req.params.id);
@@ -54,13 +60,14 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Admin: Create menu item
+// ── Admin: Create menu item ────────────────────────────────────────────────
 router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
     const data = { ...req.body };
-    if (req.file) data.image = `/uploads/menu/${req.file.filename}`;
+    // Cloudinary returns the full secure URL in req.file.path
+    if (req.file) data.image = req.file.path;
     if (data.sizes) data.sizes = JSON.parse(data.sizes);
-    if (data.tags) data.tags = JSON.parse(data.tags);
+    if (data.tags)  data.tags  = JSON.parse(data.tags);
     const item = await MenuItem.create(data);
     res.status(201).json(item);
   } catch (err) {
@@ -68,13 +75,21 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
   }
 });
 
-// Admin: Update menu item
+// ── Admin: Update menu item ────────────────────────────────────────────────
 router.put('/:id', protect, upload.single('image'), async (req, res) => {
   try {
     const data = { ...req.body };
-    if (req.file) data.image = `/uploads/menu/${req.file.filename}`;
+    if (req.file) {
+      // Delete old image from Cloudinary if it exists
+      const old = await MenuItem.findById(req.params.id);
+      if (old?.image && old.image.includes('cloudinary')) {
+        const publicId = old.image.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '');
+        await cloudinary.uploader.destroy(publicId).catch(() => {}); // best-effort
+      }
+      data.image = req.file.path;
+    }
     if (data.sizes) data.sizes = JSON.parse(data.sizes);
-    if (data.tags) data.tags = JSON.parse(data.tags);
+    if (data.tags)  data.tags  = JSON.parse(data.tags);
     const item = await MenuItem.findByIdAndUpdate(req.params.id, data, { new: true });
     if (!item) return res.status(404).json({ message: 'Item not found' });
     res.json(item);
@@ -83,18 +98,23 @@ router.put('/:id', protect, upload.single('image'), async (req, res) => {
   }
 });
 
-// Admin: Delete menu item
+// ── Admin: Delete menu item ────────────────────────────────────────────────
 router.delete('/:id', protect, async (req, res) => {
   try {
     const item = await MenuItem.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ message: 'Item not found' });
+    // Delete image from Cloudinary
+    if (item.image && item.image.includes('cloudinary')) {
+      const publicId = item.image.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '');
+      await cloudinary.uploader.destroy(publicId).catch(() => {});
+    }
     res.json({ message: 'Deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Admin: Seed default menu
+// ── Admin: Seed default menu ───────────────────────────────────────────────
 router.post('/seed/default', protect, async (req, res) => {
   try {
     await MenuItem.deleteMany({});
