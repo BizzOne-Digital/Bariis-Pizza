@@ -12,34 +12,91 @@ import Gallery from './pages/Gallery';
 import Contact from './pages/Contact';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import ScrollToTop from './components/ScrollToTop';
 import './index.css';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="spinner" style={{ marginTop:'40vh' }}/>;
-  if (!user) return <Navigate to="/admin/login" replace/>;
+
+  if (loading) {
+    return <div className="spinner" style={{ marginTop: '40vh' }} />;
+  }
+
+  if (!user) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
   return children;
 };
 
 const PublicLayout = ({ children }) => (
   <>
-    <Navbar/>
+    <Navbar />
     <main>{children}</main>
-    <Footer/>
+    <Footer />
   </>
 );
 
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/"        element={<PublicLayout><Home/></PublicLayout>}/>
-      <Route path="/menu"    element={<PublicLayout><MenuPage/></PublicLayout>}/>
-      <Route path="/order"   element={<PublicLayout><OrderPage/></PublicLayout>}/>
-      <Route path="/gallery" element={<PublicLayout><Gallery/></PublicLayout>}/>
-      <Route path="/contact" element={<PublicLayout><Contact/></PublicLayout>}/>
-      <Route path="/admin/login" element={<AdminLogin/>}/>
-      <Route path="/admin"   element={<ProtectedRoute><AdminDashboard/></ProtectedRoute>}/>
-      <Route path="*"        element={<Navigate to="/" replace/>}/>
+      <Route
+        path="/"
+        element={
+          <PublicLayout>
+            <Home />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/menu"
+        element={
+          <PublicLayout>
+            <MenuPage />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/order"
+        element={
+          <PublicLayout>
+            <OrderPage />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/gallery"
+        element={
+          <PublicLayout>
+            <Gallery />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/contact"
+        element={
+          <PublicLayout>
+            <Contact />
+          </PublicLayout>
+        }
+      />
+
+      <Route path="/admin/login" element={<AdminLogin />} />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
@@ -47,9 +104,12 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
+
       <AuthProvider>
         <CartProvider>
-          <AppRoutes/>
+          <AppRoutes />
+
           <Toaster
             position="top-right"
             toastOptions={{
@@ -60,8 +120,20 @@ export default function App() {
                 borderRadius: '10px',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
               },
-              success: { style: { background:'#0E2818', color:'#E2C47A', border:'1px solid #96741E' } },
-              error:   { style: { background:'#fff', color:'#B83232', border:'1px solid #B83232' } },
+              success: {
+                style: {
+                  background: '#0E2818',
+                  color: '#E2C47A',
+                  border: '1px solid #96741E',
+                },
+              },
+              error: {
+                style: {
+                  background: '#fff',
+                  color: '#B83232',
+                  border: '1px solid #B83232',
+                },
+              },
             }}
           />
         </CartProvider>
