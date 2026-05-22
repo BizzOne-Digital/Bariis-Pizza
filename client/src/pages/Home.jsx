@@ -27,12 +27,12 @@ const SERVICES = [
 ];
 
 const MENU_CATS = [
-  { label: 'Somali Rice Dishes', slug: 'somali-rice', img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=600&q=80', count: '5 dishes' },
-  { label: 'Somali Specialties', slug: 'somali-specialties', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80', count: '6 dishes' },
-  { label: 'Halal Pizza', slug: 'pizza', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80', count: '6 pizzas' },
-  { label: 'Sambusa & Snacks', slug: 'sambusa-snacks', img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80', count: 'Crispy & golden' },
-  { label: 'Family Platters', slug: 'family-platters', img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80', count: 'Feeds the whole family' },
-  { label: 'Drinks & Tea', slug: 'drinks', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=80', count: 'Somali tea & more' },
+  { label: 'Somali Plates', slug: 'somali-plates', img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=600&q=80', count: 'Bariis, Suqaar & more' },
+  { label: 'Pizza', slug: 'pizza', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80', count: 'Halal toppings' },
+  { label: 'Pasta', slug: 'pasta', img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=600&q=80', count: 'Fresh & hearty' },
+  { label: 'Ugali & Fufu', slug: 'ugali-fufu', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80', count: 'African staples' },
+  { label: 'Drinks', slug: 'drinks', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=80', count: 'Somali tea & more' },
+  { label: 'Kids Menu', slug: 'kids-menu', img: 'https://images.unsplash.com/photo-1560717789-0ac7c58ac90a?w=600&q=80', count: 'For the little ones' },
 ];
 
 const REVIEWS = [
@@ -196,12 +196,16 @@ export default function Home() {
                 Experience the rich, aromatic flavours of Somalia — from fragrant Bariis and tender Suqaar to crispy Sambusa and freshly made halal pizza. Everything 100% halal, made with love.
               </p>
               <div className="hero-ctas">
-                <Link to="/order" className="btn btn-gold btn-lg">Order Online</Link>
+                <Link to="/order?type=pickup" className="btn btn-gold btn-lg">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                  Order Pickup
+                </Link>
+                <Link to="/order?type=delivery" className="btn btn-outline-white btn-lg">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                  Order Delivery
+                </Link>
                 <a href="tel:9022929852" className="btn btn-outline-white btn-lg">
                   <IconPhone size={16}/> Call Now
-                </a>
-                <a href="https://maps.google.com/?q=9005+Commercial+Street+New+Minas+Nova+Scotia" target="_blank" rel="noreferrer" className="btn btn-outline-white btn-lg">
-                  <IconMap size={16}/> Get Directions
                 </a>
               </div>
               <div className="hero-info">
@@ -384,6 +388,37 @@ export default function Home() {
               </a>
               <a href="https://maps.google.com/?q=9005+Commercial+Street+New+Minas+Nova+Scotia" target="_blank" rel="noreferrer" className="btn btn-outline-gold btn-sm" style={{ textAlign:'center' }}>
                 Google Business Profile
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FIND US / MAP ── */}
+      <section className="section section-cream">
+        <div className="container">
+          <div style={{ textAlign:'center', marginBottom:'2rem' }}>
+            <div className="section-label centered">Visit Us</div>
+            <h2 className="display-lg" style={{ color:'var(--green)', marginTop:'12px' }}>Find Us in New Minas</h2>
+            <p style={{ color:'var(--muted)', marginTop:'10px', fontSize:'0.95rem' }}>
+              9005 Commercial Street, New Minas, Nova Scotia &nbsp;·&nbsp; 902-292-9852
+            </p>
+          </div>
+          <div style={{ borderRadius:'var(--r-xl)', overflow:'hidden', boxShadow:'var(--sh-md)', border:'1px solid var(--cream-dk)' }}>
+            <iframe
+              title="Bariis & Pizza House"
+              src="https://maps.google.com/maps?q=9005+Commercial+Street+New+Minas+Nova+Scotia+Canada&t=&z=15&ie=UTF8&iwloc=&output=embed"
+              width="100%"
+              height="360"
+              style={{ border:'none', display:'block' }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+            <div style={{ background:'var(--white)', padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'12px' }}>
+              <p style={{ fontSize:'0.875rem', color:'var(--muted)' }}>9005 Commercial Street, New Minas, NS · Mon–Sun 11:00 AM – 10:00 PM</p>
+              <a href="https://maps.google.com/?q=9005+Commercial+Street+New+Minas+Nova+Scotia" target="_blank" rel="noreferrer" className="btn btn-gold btn-sm">
+                <IconMap size={13}/> Get Directions
               </a>
             </div>
           </div>

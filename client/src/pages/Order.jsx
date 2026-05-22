@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   IconTrash,
   IconPlus,
@@ -16,11 +16,12 @@ import toast from 'react-hot-toast';
 
 export default function OrderPage() {
   const { cart, removeItem, updateQty, clearCart, total, itemCount } = useCart();
+  const [searchParams] = useSearchParams();
 
   const [settings, setSettings] = useState(null);
 
   const [step, setStep] = useState('cart');
-  const [orderType, setOrderType] = useState('pickup');
+  const [orderType, setOrderType] = useState(searchParams.get('type') === 'delivery' ? 'delivery' : 'pickup');
 
   const [form, setForm] = useState({
     name: '',

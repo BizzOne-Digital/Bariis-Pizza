@@ -6,23 +6,21 @@ import { getMenuItems } from '../services/api';
 
 const SECTIONS = [
   { key: 'all',             label: 'All Items',          img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70' },
-  { key: 'somali-rice',     label: 'Somali Dishes',      img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&q=70' },
-  { key: 'somali-specialties', label: 'Specialties',     img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=70' },
-  { key: 'pizza',           label: 'Halal Pizza',        img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=70' },
-  { key: 'sambusa-snacks',  label: 'Sambusa & Snacks',   img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&q=70' },
-  { key: 'drinks',          label: 'Drinks & Tea',       img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=70' },
-  { key: 'combos',          label: 'Lunch Specials',     img: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=70' },
-  { key: 'family-platters', label: 'Family Platters',    img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=70' },
+  { key: 'somali-plates',   label: 'Somali Plates',      img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&q=70' },
+  { key: 'pizza',           label: 'Pizza',              img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=70' },
+  { key: 'pasta',           label: 'Pasta',              img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400&q=70' },
+  { key: 'ugali-fufu',      label: 'Ugali & Fufu',       img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=70' },
+  { key: 'drinks',          label: 'Drinks',             img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=70' },
+  { key: 'kids-menu',       label: 'Kids Menu',          img: 'https://images.unsplash.com/photo-1560717789-0ac7c58ac90a?w=400&q=70' },
 ];
 
 const SEC_HEADERS = {
-  'somali-rice':       { title: 'Somali Dishes', sub: 'Fragrant rice dishes with tender halal meat', img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=1200&q=80' },
-  'somali-specialties':{ title: 'Somali Specialties', sub: 'Traditional Somali meat and sauce dishes', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=80' },
-  'pizza':             { title: 'Halal Pizza', sub: 'Fresh dough, premium halal toppings, three sizes', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=80' },
-  'sambusa-snacks':    { title: 'Sambusa & Snacks', sub: 'Crispy golden pastries, fried to perfection', img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1200&q=80' },
-  'drinks':            { title: 'Drinks & Tea', sub: 'Somali spiced tea, juices and cold drinks', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=1200&q=80' },
-  'combos':            { title: 'Lunch Specials & Combos', sub: 'Best value meals — includes drink', img: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=1200&q=80' },
-  'family-platters':   { title: 'Family Platters', sub: 'Generous portions to feed the whole family', img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200&q=80' },
+  'somali-plates': { title: 'Somali Plates', sub: 'Authentic Somali rice dishes — Bariis, Suqaar, Hilib & more', img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=1200&q=80' },
+  'pizza':         { title: 'Pizza',         sub: 'Fresh dough, premium halal toppings, made to order', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=80' },
+  'pasta':         { title: 'Pasta',         sub: 'Classic pasta dishes made with fresh ingredients', img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=1200&q=80' },
+  'ugali-fufu':    { title: 'Ugali & Fufu',  sub: 'Traditional East & West African staples, made fresh daily', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=80' },
+  'drinks':        { title: 'Drinks',        sub: 'Somali spiced tea, fresh juices and cold drinks', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=1200&q=80' },
+  'kids-menu':     { title: 'Kids Menu',     sub: 'Smaller portions, big flavours — perfect for little ones', img: 'https://images.unsplash.com/photo-1560717789-0ac7c58ac90a?w=1200&q=80' },
 };
 
 export default function MenuPage() {

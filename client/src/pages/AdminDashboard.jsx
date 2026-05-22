@@ -12,14 +12,12 @@ import {
 import toast from 'react-hot-toast';
 
 const CATEGORIES = [
-  { key: 'somali-rice',       label: 'Somali Dishes (Rice)' },
-  { key: 'somali-specialties',label: 'Somali Specialties' },
-  { key: 'pizza',             label: 'Halal Pizza' },
-  { key: 'sambusa-snacks',    label: 'Sambusa & Snacks' },
-  { key: 'sides',             label: 'Sides' },
-  { key: 'drinks',            label: 'Drinks & Tea' },
-  { key: 'combos',            label: 'Lunch Specials / Combos' },
-  { key: 'family-platters',   label: 'Family Platters' },
+  { key: 'somali-plates', label: 'Somali Plates' },
+  { key: 'pizza',         label: 'Pizza' },
+  { key: 'pasta',         label: 'Pasta' },
+  { key: 'ugali-fufu',    label: 'Ugali & Fufu' },
+  { key: 'drinks',        label: 'Drinks' },
+  { key: 'kids-menu',     label: 'Kids Menu' },
 ];
 
 const STATUS_COLORS = {
@@ -27,7 +25,7 @@ const STATUS_COLORS = {
   ready:'#27AE60', delivered:'#2ECC71', cancelled:'#E74C3C'
 };
 
-const EMPTY_ITEM = { name:'', description:'', price:'', category:'somali-rice', available:true, featured:false, tags:'' };
+const EMPTY_ITEM = { name:'', description:'', price:'', category:'somali-plates', available:true, featured:false, tags:'' };
 
 /* ── Sidebar Nav Item ── */
 const NavItem = ({ icon, label, active, onClick, badge }) => (

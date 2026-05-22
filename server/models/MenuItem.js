@@ -7,7 +7,6 @@ const MenuItemSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['somali-rice', 'somali-specialties', 'pizza', 'sambusa-snacks', 'sides', 'drinks', 'combos', 'family-platters', 'lunch-specials']
   },
   image: { type: String, default: '' },
   available: { type: Boolean, default: true },

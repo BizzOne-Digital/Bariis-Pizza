@@ -333,18 +333,29 @@ export default function Navbar() {
               color:'var(--green)'
             }}
           >
-            Call: 902-292-9852
+            📞 Call Now: 902-292-9852
           </a>
 
           <Link
-            to="/order"
+            to="/order?type=pickup"
             onClick={() => setOpen(false)}
             style={{
               background:'var(--green-md)',
               color:'var(--gold-lt)'
             }}
           >
-            Order Online
+            🛍 Order Pickup
+          </Link>
+
+          <Link
+            to="/order?type=delivery"
+            onClick={() => setOpen(false)}
+            style={{
+              background:'var(--green-md)',
+              color:'var(--gold-lt)'
+            }}
+          >
+            🚗 Order Delivery
           </Link>
         </div>
       </div>
