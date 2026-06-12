@@ -6,7 +6,7 @@ import { getFeaturedItems } from '../services/api';
 
 const WHY_US = [
   { title: '100% Halal', desc: 'Every ingredient sourced and prepared under strict halal standards. Certified and verified.', img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80' },
-  { title: 'Authentic Somali', desc: 'Traditional recipes passed through generations — Bariis, Suqaar, Hilib, Canjeero made the right way.', img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=600&q=80' },
+  { title: 'Authentic Somali', desc: 'Traditional recipes passed through generations — Bariis, Suqaar, Hilib, Canjeero made the right way.', img: '/pic2.png' },
   { title: 'Halal Pizza', desc: 'Fresh dough, premium halal toppings, wood-fired flavour. From classic to Somali-inspired creations.', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80' },
   { title: 'Fast & Fresh', desc: 'Every order made to order. Dine-in, takeout, delivery and catering — we come to you.', img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80' },
 ];
@@ -27,10 +27,10 @@ const SERVICES = [
 ];
 
 const MENU_CATS = [
-  { label: 'Somali Plates', slug: 'somali-plates', img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=600&q=80', count: 'Bariis, Suqaar & more' },
+  { label: 'Somali Plates', slug: 'somali-plates', img: '/pic1.png', count: 'Bariis, Suqaar & more' },
   { label: 'Pizza', slug: 'pizza', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80', count: 'Halal toppings' },
   { label: 'Pasta', slug: 'pasta', img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=600&q=80', count: 'Fresh & hearty' },
-  { label: 'Ugali & Fufu', slug: 'ugali-fufu', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80', count: 'African staples' },
+  { label: 'Ugali & Fufu', slug: 'ugali-fufu', img: '/pic3.png', count: 'African staples' },
   { label: 'Drinks', slug: 'drinks', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=80', count: 'Somali tea & more' },
   { label: 'Kids Menu', slug: 'kids-menu', img: 'https://images.unsplash.com/photo-1560717789-0ac7c58ac90a?w=600&q=80', count: 'For the little ones' },
 ];
@@ -172,7 +172,7 @@ export default function Home() {
 
       {/* Grand Opening Banner */}
       <div className="grand-open">
-        Grand Opening — Now Open in New Minas, Nova Scotia &nbsp;|&nbsp; Call: 902-292-9852
+        Grand Opening — Now Open in New Minas, Nova Scotia &nbsp;|&nbsp; Call: 902-3657-777
       </div>
 
       {/* ── HERO ── */}

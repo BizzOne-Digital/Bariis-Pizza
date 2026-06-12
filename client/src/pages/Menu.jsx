@@ -6,19 +6,19 @@ import { getMenuItems } from '../services/api';
 
 const SECTIONS = [
   { key: 'all',             label: 'All Items',          img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70' },
-  { key: 'somali-plates',   label: 'Somali Plates',      img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&q=70' },
+  { key: 'somali-plates',   label: 'Somali Plates',      img: '/pic1.png' },
   { key: 'pizza',           label: 'Pizza',              img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=70' },
   { key: 'pasta',           label: 'Pasta',              img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400&q=70' },
-  { key: 'ugali-fufu',      label: 'Ugali & Fufu',       img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=70' },
+  { key: 'ugali-fufu',      label: 'Ugali & Fufu',       img: '/pic3.png' },
   { key: 'drinks',          label: 'Drinks',             img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=70' },
   { key: 'kids-menu',       label: 'Kids Menu',          img: 'https://images.unsplash.com/photo-1560717789-0ac7c58ac90a?w=400&q=70' },
 ];
 
 const SEC_HEADERS = {
-  'somali-plates': { title: 'Somali Plates', sub: 'Authentic Somali rice dishes — Bariis, Suqaar, Hilib & more', img: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=1200&q=80' },
+  'somali-plates': { title: 'Somali Plates', sub: 'Authentic Somali rice dishes — Bariis, Suqaar, Hilib & more', img: '/pic1.png' },
   'pizza':         { title: 'Pizza',         sub: 'Fresh dough, premium halal toppings, made to order', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=80' },
   'pasta':         { title: 'Pasta',         sub: 'Classic pasta dishes made with fresh ingredients', img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=1200&q=80' },
-  'ugali-fufu':    { title: 'Ugali & Fufu',  sub: 'Traditional East & West African staples, made fresh daily', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=80' },
+  'ugali-fufu':    { title: 'Ugali & Fufu',  sub: 'Traditional East & West African staples, made fresh daily', img: '/pic3.png' },
   'drinks':        { title: 'Drinks',        sub: 'Somali spiced tea, fresh juices and cold drinks', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=1200&q=80' },
   'kids-menu':     { title: 'Kids Menu',     sub: 'Smaller portions, big flavours — perfect for little ones', img: 'https://images.unsplash.com/photo-1560717789-0ac7c58ac90a?w=1200&q=80' },
 };
