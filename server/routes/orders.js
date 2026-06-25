@@ -7,30 +7,28 @@ const nodemailer = require('nodemailer');
 // ─── Email Notification Helper ───────────────────────────────────────────────
 const sendOrderNotification = async (order) => {
   try {
-    const {
-      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS,
-      NOTIFY_EMAIL
-    } = process.env;
+    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, NOTIFY_EMAIL } = process.env;
 
-    // If SMTP not configured, skip silently (don't crash order placement)
-    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !NOTIFY_EMAIL) {
-      console.log('⚠️  Email notification skipped — SMTP env vars not set.');
-      return;
-    }
+    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !NOTIFY_EMAIL) return;
 
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: parseInt(SMTP_PORT) || 587,
       secure: parseInt(SMTP_PORT) === 465,
       auth: { user: SMTP_USER, pass: SMTP_PASS },
+      tls: { rejectUnauthorized: false },
     });
 
     const itemsList = order.items
-      .map(i => `• ${i.name}${i.size ? ` (${i.size})` : ''} × ${i.quantity} — $${(i.price * i.quantity).toFixed(2)}`)
+      .map(i => `• ${i.name}${i.size ? ` (${i.size})` : ''} x${i.quantity} — $${(i.price * i.quantity).toFixed(2)}`)
       .join('\n');
 
-    const emailBody = `
-🍽️  NEW ORDER — Bariis Halal & Pizza House
+    await transporter.sendMail({
+      from: `"Bariis Order System" <${SMTP_USER}>`,
+      to: NOTIFY_EMAIL,
+      subject: `New ${order.orderType} Order - ${order.customerName} ($${order.totalAmount.toFixed(2)})`,
+      text: `
+NEW ORDER — Bariis Halal & Pizza House
 ==========================================
 
 Order ID  : ${order._id.toString().slice(-8).toUpperCase()}
@@ -55,18 +53,11 @@ ${order.specialInstructions ? `SPECIAL INSTRUCTIONS\n--------------------\n${ord
 
 ==========================================
 Login to admin dashboard to manage this order.
-`;
-
-    await transporter.sendMail({
-      from: `"Bariis Order System" <${SMTP_USER}>`,
-      to: NOTIFY_EMAIL,
-      subject: `🔔 New ${order.orderType} Order — ${order.customerName} ($${order.totalAmount.toFixed(2)})`,
-      text: emailBody,
+`,
     });
 
     console.log(`✅ Order notification email sent to ${NOTIFY_EMAIL}`);
   } catch (err) {
-    // Log but never crash order creation
     console.error('❌ Email notification error:', err.message);
   }
 };
@@ -77,7 +68,6 @@ Login to admin dashboard to manage this order.
 router.post('/', async (req, res) => {
   try {
     const order = await Order.create(req.body);
-    // Fire-and-forget email notification
     sendOrderNotification(order);
     res.status(201).json(order);
   } catch (err) {
@@ -114,7 +104,7 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-// Admin: Get new order count since timestamp (used for polling)
+// Admin: Get new orders since timestamp (used for dashboard polling)
 router.get('/new-since', protect, async (req, res) => {
   try {
     const { since } = req.query;
