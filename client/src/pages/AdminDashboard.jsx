@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -7,7 +7,8 @@ import {
 } from '../components/Icons';
 import {
   getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem, seedMenu,
-  getOrders, updateOrderStatus, getOrderStats, getSettings, updateSettings
+  getOrders, updateOrderStatus, getOrderStats, getSettings, updateSettings,
+  getNewOrdersSince
 } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -26,6 +27,31 @@ const STATUS_COLORS = {
 };
 
 const EMPTY_ITEM = { name:'', description:'', price:'', category:'somali-plates', available:true, featured:false, tags:'' };
+
+// ── Play a short beep sound using Web Audio API ──────────────────────────────
+const playNotificationSound = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const playTone = (freq, start, dur) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, ctx.currentTime + start);
+      gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + start + 0.01);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + dur + 0.05);
+    };
+    playTone(880, 0,    0.12);
+    playTone(1100, 0.15, 0.12);
+    playTone(1320, 0.30, 0.18);
+  } catch (e) {
+    console.log('Sound not supported:', e);
+  }
+};
 
 /* ── Sidebar Nav Item ── */
 const NavItem = ({ icon, label, active, onClick, badge }) => (
@@ -86,6 +112,38 @@ const Toggle = ({ value, onChange }) => (
   </button>
 );
 
+/* ── Notification Bell ── */
+const NotificationBell = ({ count, onClick }) => (
+  <button
+    onClick={onClick}
+    style={{
+      position:'relative', padding:'8px', borderRadius:'8px',
+      border: count > 0 ? '1.5px solid var(--gold)' : '1px solid var(--cream-dk)',
+      background: count > 0 ? 'rgba(201,168,76,0.08)' : 'none',
+      cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
+      transition:'all 0.2s'
+    }}
+    title={count > 0 ? `${count} new order${count > 1 ? 's' : ''}` : 'No new orders'}
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={count > 0 ? 'var(--gold-dk)' : 'var(--muted)'} strokeWidth="1.8" strokeLinecap="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+    </svg>
+    {count > 0 && (
+      <span style={{
+        position:'absolute', top:'-5px', right:'-5px',
+        background:'var(--red)', color:'white',
+        fontSize:'0.6rem', fontWeight:700,
+        width:'18px', height:'18px', borderRadius:'50%',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        border:'2px solid white'
+      }}>
+        {count > 9 ? '9+' : count}
+      </span>
+    )}
+  </button>
+);
+
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -104,12 +162,19 @@ export default function AdminDashboard() {
   const [imgFile, setImgFile] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // ── Notification state ──────────────────────────────────────────────────────
+  const [newOrderCount, setNewOrderCount] = useState(0);
+  const [newOrdersList, setNewOrdersList] = useState([]);
+  const [showNewOrdersBanner, setShowNewOrdersBanner] = useState(false);
+  const lastCheckedRef = useRef(new Date().toISOString());
+  const pollIntervalRef = useRef(null);
+
   useEffect(() => { if (!user) navigate('/admin/login'); }, [user, navigate]);
 
-  const loadStats   = useCallback(async () => { try { const r = await getOrderStats(); setStats(r.data); } catch {} }, []);
-  const loadMenu    = useCallback(async () => { setLoading(true); try { const r = await getMenuItems(); setMenuItems(r.data); } catch {} setLoading(false); }, []);
-  const loadOrders  = useCallback(async () => { setLoading(true); try { const r = await getOrders(orderFilter ? { status: orderFilter } : {}); setOrders(r.data); } catch {} setLoading(false); }, [orderFilter]);
-  const loadSettings= useCallback(async () => { try { const r = await getSettings(); setSettings(r.data); } catch {} }, []);
+  const loadStats    = useCallback(async () => { try { const r = await getOrderStats(); setStats(r.data); } catch {} }, []);
+  const loadMenu     = useCallback(async () => { setLoading(true); try { const r = await getMenuItems(); setMenuItems(r.data); } catch {} setLoading(false); }, []);
+  const loadOrders   = useCallback(async () => { setLoading(true); try { const r = await getOrders(orderFilter ? { status: orderFilter } : {}); setOrders(r.data); } catch {} setLoading(false); }, [orderFilter]);
+  const loadSettings = useCallback(async () => { try { const r = await getSettings(); setSettings(r.data); } catch {} }, []);
 
   useEffect(() => {
     if (tab === 'dashboard') loadStats();
@@ -119,6 +184,68 @@ export default function AdminDashboard() {
   }, [tab]);
 
   useEffect(() => { if (tab === 'orders') loadOrders(); }, [orderFilter]);
+
+  // ── Auto-refresh orders every 30s when on orders tab ───────────────────────
+  useEffect(() => {
+    if (tab === 'orders') {
+      const interval = setInterval(() => {
+        loadOrders();
+        loadStats();
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [tab, loadOrders, loadStats]);
+
+  // ── Poll for NEW orders every 30s regardless of tab ────────────────────────
+  useEffect(() => {
+    if (!user) return;
+
+    const poll = async () => {
+      try {
+        const res = await getNewOrdersSince(lastCheckedRef.current);
+        const { count, orders: newOrders } = res.data;
+
+        if (count > 0) {
+          playNotificationSound();
+          setNewOrderCount(prev => prev + count);
+          setNewOrdersList(prev => [...newOrders, ...prev].slice(0, 10));
+          setShowNewOrdersBanner(true);
+
+          // Also show a toast
+          newOrders.forEach(o => {
+            toast.success(
+              `🔔 New ${o.orderType} order from ${o.customerName} — $${o.totalAmount.toFixed(2)}`,
+              { duration: 8000, icon: '🍽️' }
+            );
+          });
+
+          // Refresh stats
+          loadStats();
+          // If on orders tab, refresh list too
+          if (tab === 'orders') loadOrders();
+        }
+
+        lastCheckedRef.current = new Date().toISOString();
+      } catch (err) {
+        // Silent fail — don't spam console
+      }
+    };
+
+    pollIntervalRef.current = setInterval(poll, 30000);
+    return () => clearInterval(pollIntervalRef.current);
+  }, [user, tab]);
+
+  const dismissNewOrders = () => {
+    setNewOrderCount(0);
+    setNewOrdersList([]);
+    setShowNewOrdersBanner(false);
+  };
+
+  const viewNewOrders = () => {
+    setTab('orders');
+    setOrderFilter('pending');
+    dismissNewOrders();
+  };
 
   const openNew  = () => { setEditItem(null); setForm(EMPTY_ITEM); setSizes([]); setImgFile(null); setShowForm(true); };
   const openEdit = item => { setEditItem(item); setForm({ ...item, tags: item.tags?.join(', ') || '' }); setSizes(item.sizes || []); setImgFile(null); setShowForm(true); };
@@ -155,77 +282,67 @@ export default function AdminDashboard() {
     try { await updateSettings(settings); toast.success('Settings saved'); } catch { toast.error('Save failed'); }
   };
 
-  const filtered = catFilter === 'all' ? menuItems : menuItems.filter(i => i.category === catFilter);
+  const filtered    = catFilter === 'all' ? menuItems : menuItems.filter(i => i.category === catFilter);
   const pendingCount = orders.filter(o => o.status === 'pending').length;
 
   const navItems = [
-    { key:'dashboard', label:'Dashboard',      icon:<IconDollar size={17}/> },
-    { key:'menu',      label:'Menu Items',     icon:<IconList size={17}/> },
-    { key:'orders',    label:'Orders',         icon:<IconPackage size={17}/>, badge: pendingCount },
-    { key:'settings',  label:'Settings',       icon:<IconSettings size={17}/> },
+    { key:'dashboard', label:'Dashboard',  icon:<IconDollar size={17}/> },
+    { key:'menu',      label:'Menu Items', icon:<IconList size={17}/> },
+    { key:'orders',    label:'Orders',     icon:<IconPackage size={17}/>, badge: pendingCount },
+    { key:'settings',  label:'Settings',   icon:<IconSettings size={17}/> },
   ];
 
   return (
     <div style={{ display:'flex', minHeight:'100vh', fontFamily:'var(--ff-body)', background:'#F4F5F7' }}>
       <style>{`
-        /* Sidebar */
-        .adm-sidebar {
-          width:240px; background:var(--ink-soft); display:flex; flex-direction:column;
-          position:fixed; top:0; bottom:0; left:0; z-index:500;
-          transition:transform 0.3s;
-        }
+        .adm-sidebar { width:240px; background:var(--ink-soft); display:flex; flex-direction:column; position:fixed; top:0; bottom:0; left:0; z-index:500; transition:transform 0.3s; }
         .adm-sidebar-brand { padding:1.5rem 1.25rem; border-bottom:1px solid rgba(201,168,76,0.12); }
         .adm-sidebar-brand .bname { font-family:var(--ff-display); font-size:1rem; color:var(--gold); display:block; line-height:1.3; }
         .adm-sidebar-brand .btag  { font-size:0.62rem; text-transform:uppercase; letter-spacing:0.1em; color:rgba(226,196,122,0.4); display:block; margin-top:2px; }
-        .adm-sidebar-nav { flex:1; padding:1rem 10px; overflow-y:auto; }
+        .adm-sidebar-nav  { flex:1; padding:1rem 10px; overflow-y:auto; }
         .adm-sidebar-foot { padding:1rem 10px 1.25rem; border-top:1px solid rgba(201,168,76,0.1); }
-        .adm-user-row { display:flex; align-items:center; gap:8px; padding:8px 6px; margin-bottom:6px; }
+        .adm-user-row    { display:flex; align-items:center; gap:8px; padding:8px 6px; margin-bottom:6px; }
         .adm-user-avatar { width:30px; height:30px; border-radius:50%; background:rgba(201,168,76,0.15); display:flex; align-items:center; justify-content:center; color:var(--gold); flex-shrink:0; }
         .adm-user-info .uname { font-size:0.8rem; font-weight:600; color:rgba(250,246,238,0.8); }
         .adm-user-info .urole { font-size:0.68rem; color:rgba(250,246,238,0.35); }
         .adm-logout { display:flex; align-items:center; gap:8px; width:100%; padding:9px 10px; color:rgba(250,246,238,0.4); font-size:0.8rem; cursor:pointer; border-radius:6px; transition:all 0.2s; border:none; background:none; font-family:var(--ff-body); }
         .adm-logout:hover { color:var(--red); background:rgba(184,50,50,0.08); }
-        /* Main */
-        .adm-main { margin-left:240px; flex:1; display:flex; flex-direction:column; min-height:100vh; }
+        .adm-main   { margin-left:240px; flex:1; display:flex; flex-direction:column; min-height:100vh; }
         .adm-topbar { background:var(--white); padding:0 2rem; height:60px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.07); box-shadow:0 1px 8px rgba(0,0,0,0.05); position:sticky; top:0; z-index:100; }
         .adm-topbar h1 { font-size:1rem; font-weight:700; color:var(--ink-soft); }
         .adm-topbar-right { display:flex; align-items:center; gap:10px; }
         .adm-halal-pill { display:flex; align-items:center; gap:6px; padding:5px 12px; border:1px solid var(--border); border-radius:20px; font-size:0.72rem; font-weight:600; color:var(--green); }
         .adm-content { flex:1; padding:1.75rem 2rem; overflow-y:auto; }
-        /* Stats grid */
-        .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:1.75rem; }
-        /* Table card */
-        .tbl-card { background:var(--white); border-radius:var(--r-lg); box-shadow:var(--sh-sm); overflow:hidden; }
-        .tbl-header { padding:1rem 1.5rem; border-bottom:1px solid rgba(0,0,0,0.06); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+        .stats-grid  { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:1.75rem; }
+        .tbl-card    { background:var(--white); border-radius:var(--r-lg); box-shadow:var(--sh-sm); overflow:hidden; }
+        .tbl-header  { padding:1rem 1.5rem; border-bottom:1px solid rgba(0,0,0,0.06); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
         .tbl-header h2 { font-size:0.95rem; font-weight:700; color:var(--ink-soft); }
         .tbl-filters { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
-        .flt-btn { padding:6px 14px; border-radius:20px; border:1.5px solid rgba(0,0,0,0.1); background:none; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:var(--ff-body); color:var(--muted); }
+        .flt-btn  { padding:6px 14px; border-radius:20px; border:1.5px solid rgba(0,0,0,0.1); background:none; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:var(--ff-body); color:var(--muted); }
         .flt-btn.active { background:var(--green); color:var(--gold-lt); border-color:var(--green); }
         .flt-select { padding:6px 10px; border-radius:8px; border:1.5px solid rgba(0,0,0,0.1); font-size:0.8rem; font-family:var(--ff-body); outline:none; cursor:pointer; }
-        /* Table */
         .data-table { width:100%; border-collapse:collapse; }
         .data-table th { padding:10px 16px; text-align:left; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); border-bottom:2px solid rgba(0,0,0,0.06); white-space:nowrap; }
         .data-table td { padding:12px 16px; font-size:0.845rem; border-bottom:1px solid rgba(0,0,0,0.04); color:var(--ink-soft); vertical-align:middle; }
         .data-table tr:hover td { background:rgba(0,0,0,0.01); }
         .data-table tr:last-child td { border-bottom:none; }
-        .item-row { display:flex; align-items:center; gap:10px; }
+        .item-row  { display:flex; align-items:center; gap:10px; }
         .item-thumb { width:40px; height:40px; border-radius:8px; overflow:hidden; background:var(--cream-dk); flex-shrink:0; }
         .item-thumb img { width:100%; height:100%; object-fit:cover; }
         .item-name { font-weight:600; font-size:0.875rem; color:var(--ink); }
         .item-desc { font-size:0.75rem; color:var(--muted); margin-top:1px; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .stat-pill { display:inline-block; padding:3px 9px; border-radius:20px; font-size:0.7rem; font-weight:700; }
-        .pill-avail { background:#E8F5E9; color:#2E7D32; }
+        .stat-pill    { display:inline-block; padding:3px 9px; border-radius:20px; font-size:0.7rem; font-weight:700; }
+        .pill-avail   { background:#E8F5E9; color:#2E7D32; }
         .pill-unavail { background:#FFEBEE; color:#C62828; }
-        .pill-feat { background:#FFF8E1; color:#F57F17; margin-left:4px; }
-        .status-pill { padding:4px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.04em; }
+        .pill-feat    { background:#FFF8E1; color:#F57F17; margin-left:4px; }
+        .status-pill  { padding:4px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.04em; }
         .act-btns { display:flex; gap:4px; }
-        .act-btn { width:30px; height:30px; border-radius:7px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; border:none; background:none; }
+        .act-btn  { width:30px; height:30px; border-radius:7px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; border:none; background:none; }
         .act-btn.edit { color:var(--green-lt); } .act-btn.edit:hover { background:rgba(45,106,79,0.1); }
-        .act-btn.del  { color:var(--red); }     .act-btn.del:hover  { background:rgba(184,50,50,0.1); }
+        .act-btn.del  { color:var(--red); }       .act-btn.del:hover  { background:rgba(184,50,50,0.1); }
         .status-sel { padding:5px 8px; border-radius:7px; border:1.5px solid rgba(0,0,0,0.1); font-size:0.78rem; font-family:var(--ff-body); cursor:pointer; outline:none; }
-        /* Form Modal */
-        .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; display:flex; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(4px); }
-        .modal-box { background:var(--white); border-radius:var(--r-xl); width:100%; max-width:560px; max-height:90vh; overflow-y:auto; box-shadow:var(--sh-lg); }
+        .modal-bg   { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; display:flex; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(4px); }
+        .modal-box  { background:var(--white); border-radius:var(--r-xl); width:100%; max-width:560px; max-height:90vh; overflow-y:auto; box-shadow:var(--sh-lg); }
         .modal-head { padding:1.5rem 1.75rem 1rem; border-bottom:1px solid var(--cream-dk); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:white; z-index:1; }
         .modal-head h2 { font-family:var(--ff-display); font-size:1.3rem; color:var(--green); }
         .modal-close { padding:6px; border-radius:8px; cursor:pointer; color:var(--muted); transition:all 0.2s; }
@@ -244,7 +361,6 @@ export default function AdminDashboard() {
         .size-row input:focus { border-color:var(--gold); }
         .add-size-row { padding:7px 12px; border-radius:8px; background:var(--cream); border:1.5px dashed var(--cream-dk); font-size:0.8rem; font-weight:600; cursor:pointer; color:var(--muted); transition:all 0.2s; width:100%; text-align:left; font-family:var(--ff-body); }
         .add-size-row:hover { border-color:var(--gold); color:var(--green); }
-        /* Settings */
         .settings-section { background:var(--white); border-radius:var(--r-lg); padding:1.75rem; box-shadow:var(--sh-sm); margin-bottom:1.5rem; }
         .settings-section h3 { font-family:var(--ff-display); font-size:1.1rem; color:var(--green); margin-bottom:1.25rem; padding-bottom:10px; border-bottom:1px solid var(--cream-dk); }
         .sfg { margin-bottom:1rem; }
@@ -252,13 +368,19 @@ export default function AdminDashboard() {
         .sfg input { width:100%; padding:10px 13px; border:1.5px solid var(--cream-dk); border-radius:var(--r); font-size:0.875rem; font-family:var(--ff-body); outline:none; transition:border-color 0.2s; }
         .sfg input:focus { border-color:var(--gold); }
         .sfg-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-        /* Quick actions */
         .qa-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-top:1.5rem; }
         .qa-card { background:var(--white); border-radius:var(--r-lg); padding:1.25rem; border:1.5px solid var(--cream-dk); cursor:pointer; transition:all 0.2s; text-align:center; }
         .qa-card:hover { border-color:var(--gold); box-shadow:var(--sh-sm); transform:translateY(-2px); }
-        .qa-card .qa-icon { width:44px; height:44px; border-radius:10px; background:rgba(14,40,24,0.07); display:flex; align-items:center; justify-content:center; margin:0 auto 10px; }
+        .qa-card .qa-icon  { width:44px; height:44px; border-radius:10px; background:rgba(14,40,24,0.07); display:flex; align-items:center; justify-content:center; margin:0 auto 10px; }
         .qa-card .qa-label { font-weight:600; font-size:0.85rem; color:var(--ink-soft); }
-        .qa-card .qa-sub { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+        .qa-card .qa-sub   { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+        /* New order banner */
+        @keyframes slideDown { from { transform:translateY(-100%); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        .new-order-banner { animation:slideDown 0.4s ease; background:linear-gradient(135deg,var(--green),#1a5c36); color:white; padding:14px 2rem; display:flex; align-items:center; gap:14px; border-bottom:2px solid var(--gold); flex-wrap:wrap; }
+        .new-order-banner .banner-text { flex:1; font-size:0.9rem; font-weight:600; }
+        .new-order-banner .banner-sub  { font-size:0.78rem; opacity:0.8; margin-top:2px; }
+        .new-order-pulse { width:10px; height:10px; border-radius:50%; background:var(--gold); animation:pulse 1s infinite; flex-shrink:0; }
+        @keyframes pulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.4); opacity:0.7; } }
         /* Mobile */
         .adm-burger { display:none; }
         @media(max-width:900px) {
@@ -326,11 +448,42 @@ export default function AdminDashboard() {
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4.5" stroke="var(--green)"/><text x="5" y="7.5" textAnchor="middle" fontSize="4" fill="var(--green)" fontFamily="serif">ح</text></svg>
               100% Halal
             </div>
+            {/* Notification Bell */}
+            <NotificationBell count={newOrderCount} onClick={viewNewOrders} />
             <a href="/" target="_blank" rel="noreferrer" style={{ fontSize:'0.78rem', color:'var(--muted)', padding:'6px 12px', border:'1px solid var(--cream-dk)', borderRadius:'7px', fontWeight:500 }}>
               View Website
             </a>
           </div>
         </div>
+
+        {/* New Order Banner */}
+        {showNewOrdersBanner && (
+          <div className="new-order-banner">
+            <div className="new-order-pulse" />
+            <div style={{ flex:1 }}>
+              <div className="banner-text">
+                🔔 {newOrderCount} New Order{newOrderCount > 1 ? 's' : ''} Received!
+              </div>
+              <div className="banner-sub">
+                {newOrdersList.slice(0,3).map(o =>
+                  `${o.customerName} (${o.orderType}) — $${o.totalAmount.toFixed(2)}`
+                ).join(' · ')}
+              </div>
+            </div>
+            <button
+              onClick={viewNewOrders}
+              style={{ padding:'8px 18px', borderRadius:'8px', background:'var(--gold)', color:' var(--ink)', fontWeight:700, fontSize:'0.82rem', border:'none', cursor:'pointer', whiteSpace:'nowrap' }}
+            >
+              View Orders
+            </button>
+            <button
+              onClick={dismissNewOrders}
+              style={{ padding:'6px', borderRadius:'6px', background:'rgba(255,255,255,0.15)', border:'none', color:'white', cursor:'pointer' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        )}
 
         <div className="adm-content">
 
@@ -338,22 +491,21 @@ export default function AdminDashboard() {
           {tab === 'dashboard' && (
             <>
               <div className="stats-grid">
-                <StatCard icon={<IconPackage size={20} color="var(--green)"/>} label="Total Orders" value={stats.totalOrders ?? '—'} accent="rgba(14,40,24,0.1)"/>
-                <StatCard icon={<IconPackage size={20} color="#3498DB"/>}   label="Today's Orders" value={stats.todayOrders ?? '—'} accent="rgba(52,152,219,0.1)" sub="Since midnight"/>
+                <StatCard icon={<IconPackage size={20} color="var(--green)"/>} label="Total Orders"   value={stats.totalOrders ?? '—'} accent="rgba(14,40,24,0.1)"/>
+                <StatCard icon={<IconPackage size={20} color="#3498DB"/>}     label="Today's Orders" value={stats.todayOrders ?? '—'} accent="rgba(52,152,219,0.1)" sub="Since midnight"/>
                 <StatCard icon={<IconDollar size={20} color="var(--gold-dk)"/>} label="Total Revenue" value={stats.totalRevenue != null ? `$${stats.totalRevenue.toFixed(2)}` : '—'} accent="rgba(201,168,76,0.1)"/>
-                <StatCard icon={<IconRefresh size={20} color="#E67E22"/>}   label="Pending Orders" value={stats.pendingOrders ?? '—'} accent="rgba(230,126,34,0.1)" sub="Need attention"/>
+                <StatCard icon={<IconRefresh size={20} color="#E67E22"/>}     label="Pending Orders" value={stats.pendingOrders ?? '—'} accent="rgba(230,126,34,0.1)" sub="Need attention"/>
               </div>
 
-              {/* Quick actions */}
               <div className="tbl-card" style={{ padding:'1.5rem' }}>
                 <h2 style={{ fontSize:'0.95rem', fontWeight:700, color:'var(--ink-soft)', marginBottom:'4px' }}>Quick Actions</h2>
                 <p style={{ fontSize:'0.82rem', color:'var(--muted)', marginBottom:'1.25rem' }}>Manage your restaurant from here</p>
                 <div className="qa-grid">
                   {[
-                    { label:'Add Menu Item', sub:'Create a new dish', icon:<IconPlus size={20} color="var(--green)"/>, action: () => { setTab('menu'); openNew(); } },
-                    { label:'View Orders',   sub:'Check latest orders', icon:<IconPackage size={20} color="#3498DB"/>, action: () => setTab('orders') },
-                    { label:'Seed Menu',     sub:'Load default items from PDF', icon:<IconRefresh size={20} color="var(--gold-dk)"/>, action: handleSeed },
-                    { label:'Settings',      sub:'Update business info', icon:<IconSettings size={20} color="#9B59B6"/>, action: () => setTab('settings') },
+                    { label:'Add Menu Item', sub:'Create a new dish',           icon:<IconPlus size={20} color="var(--green)"/>,      action: () => { setTab('menu'); openNew(); } },
+                    { label:'View Orders',   sub:'Check latest orders',          icon:<IconPackage size={20} color="#3498DB"/>,         action: () => setTab('orders') },
+                    { label:'Seed Menu',     sub:'Load default items from PDF',  icon:<IconRefresh size={20} color="var(--gold-dk)"/>, action: handleSeed },
+                    { label:'Settings',      sub:'Update business info',          icon:<IconSettings size={20} color="#9B59B6"/>,       action: () => setTab('settings') },
                   ].map(qa => (
                     <div key={qa.label} className="qa-card" onClick={qa.action}>
                       <div className="qa-icon">{qa.icon}</div>
@@ -389,9 +541,7 @@ export default function AdminDashboard() {
                 <div style={{ overflowX:'auto' }}>
                   <table className="data-table">
                     <thead>
-                      <tr>
-                        <th>Item</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th>
-                      </tr>
+                      <tr><th>Item</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
                       {filtered.length === 0 ? (
@@ -440,14 +590,17 @@ export default function AdminDashboard() {
           {tab === 'orders' && (
             <div className="tbl-card">
               <div className="tbl-header">
-                <h2>Orders ({orders.length})</h2>
+                <div style={{ display:'flex', flexDirection:'column', gap:'2px' }}>
+                  <h2>Orders ({orders.length})</h2>
+                  <span style={{ fontSize:'0.72rem', color:'var(--muted)' }}>Auto-refreshes every 30 seconds</span>
+                </div>
                 <div className="tbl-filters">
                   {['', 'pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'].map(s => (
                     <button key={s} className={`flt-btn${orderFilter === s ? ' active' : ''}`} onClick={() => setOrderFilter(s)}>
                       {s || 'All'}
                     </button>
                   ))}
-                  <button className="act-btn edit" onClick={loadOrders}><IconRefresh size={15}/></button>
+                  <button className="act-btn edit" onClick={loadOrders} title="Refresh now"><IconRefresh size={15}/></button>
                 </div>
               </div>
               {loading ? <div className="spinner"/> : (
@@ -460,10 +613,13 @@ export default function AdminDashboard() {
                       {orders.length === 0 ? (
                         <tr><td colSpan={7} style={{ textAlign:'center', padding:'3rem', color:'var(--muted)' }}>No orders found</td></tr>
                       ) : orders.map(order => (
-                        <tr key={order._id}>
+                        <tr key={order._id} style={{ background: order.status === 'pending' ? 'rgba(230,126,34,0.04)' : '' }}>
                           <td>
                             <div style={{ fontWeight:600, fontSize:'0.875rem' }}>{order.customerName}</div>
                             <div style={{ fontSize:'0.75rem', color:'var(--muted)' }}>{order.customerPhone}</div>
+                            {order.customerEmail && (
+                              <div style={{ fontSize:'0.72rem', color:'var(--muted)' }}>{order.customerEmail}</div>
+                            )}
                           </td>
                           <td style={{ fontSize:'0.78rem', color:'var(--muted)', maxWidth:'220px' }}>
                             {order.items.map(i => `${i.name}${i.size ? ` (${i.size})` : ''} ×${i.quantity}`).join(', ')}
@@ -507,7 +663,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="sfg-row">
                   <div className="sfg"><label>Phone Number</label><input value={settings.phone || ''} onChange={e => setSettings({...settings, phone:e.target.value})}/></div>
-                  <div className="sfg"><label>Email Address</label><input value={settings.email || ''} onChange={e => setSettings({...settings, email:e.target.value})}/></div>
+                  <div className="sfg"><label>Email Address (for order notifications)</label><input type="email" value={settings.email || ''} onChange={e => setSettings({...settings, email:e.target.value})} placeholder="orders@example.com"/></div>
                 </div>
                 <div className="sfg"><label>Address</label><input value={settings.address || ''} onChange={e => setSettings({...settings, address:e.target.value})}/></div>
               </div>
@@ -580,7 +736,6 @@ export default function AdminDashboard() {
               <div className="mfg"><label>Tags (comma separated)</label><input value={form.tags} onChange={e => setForm(p=>({...p,tags:e.target.value}))} placeholder="halal, popular, vegetarian, spicy"/></div>
               <div className="toggle-row"><label>Available for Order</label><Toggle value={form.available} onChange={v => setForm(p=>({...p,available:v}))}/></div>
               <div className="toggle-row"><label>Featured on Homepage</label><Toggle value={form.featured} onChange={v => setForm(p=>({...p,featured:v}))}/></div>
-              {/* Pizza sizes */}
               <div className="mfg" style={{ marginTop:'4px' }}>
                 <label>Pizza Sizes (optional — add if item has multiple sizes)</label>
                 {sizes.map((s, i) => (
