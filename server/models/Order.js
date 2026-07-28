@@ -24,6 +24,7 @@ const OrderSchema = new mongoose.Schema({
   deliveryAddress: { type: String },
   specialInstructions: { type: String },
   estimatedTime: { type: Number, default: 30 }, // minutes
+  cloverOrderId: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
 

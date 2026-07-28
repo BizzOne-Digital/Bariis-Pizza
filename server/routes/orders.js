@@ -3,6 +3,7 @@ const router = express.Router();
 const Order = require('../models/Order');
 const { protect } = require('../middleware/auth');
 const nodemailer = require('nodemailer');
+const { pushOrderToClover } = require('../utils/clover');
 
 // ─── Email Notification Helper ───────────────────────────────────────────────
 const sendOrderNotification = async (order) => {
@@ -70,6 +71,12 @@ router.post('/', async (req, res) => {
     const order = await Order.create(req.body);
     sendOrderNotification(order);
     res.status(201).json(order);
+
+    pushOrderToClover(order).then(cloverOrderId => {
+      if (cloverOrderId) {
+        Order.findByIdAndUpdate(order._id, { cloverOrderId }).catch(() => {});
+      }
+    });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
