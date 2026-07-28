@@ -579,61 +579,6 @@ export default function OrderPage() {
         {/* MAIN */}
         <div>
 
-          {/* DELIVERY APPS */}
-          <div className="platforms-card">
-            <h2>Order via Delivery Apps</h2>
-
-            <p>
-              Use your preferred delivery platform — or order directly below for pickup.
-            </p>
-
-            <div className="platform-grid">
-              {PLATFORMS.map((p) => (
-                <a
-                  key={p.name}
-                  href={p.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="platform-btn"
-                >
-                  <div
-                    style={{
-                      width:'44px',
-                      height:'44px',
-                      borderRadius:'8px',
-                      background:p.color,
-                      display:'flex',
-                      alignItems:'center',
-                      justifyContent:'center'
-                    }}
-                  >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <path
-                        d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"
-                        fill="white"
-                      />
-                    </svg>
-                  </div>
-
-                  <span className="p-name">{p.name}</span>
-
-                  <span className="p-arrow">
-                    Order here &rarr;
-                  </span>
-                </a>
-              ))}
-            </div>
-
-            <div className="divider-or">
-              Or place a direct order
-            </div>
-          </div>
-
           {/* CART */}
           {step === 'cart' && (
             <div className="cart-card">
@@ -931,6 +876,59 @@ export default function OrderPage() {
                 >
                   Order More
                 </Link>
+              </div>
+            </div>
+          )}
+
+          {/* DELIVERY APPS */}
+          {step !== 'confirm' && (
+            <div className="platforms-card">
+              <h2>Or Order via Delivery Apps</h2>
+
+              <p>
+                Prefer a delivery platform instead? Use one of the options below.
+              </p>
+
+              <div className="platform-grid">
+                {PLATFORMS.map((p) => (
+                  <a
+                    key={p.name}
+                    href={p.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="platform-btn"
+                  >
+                    <div
+                      style={{
+                        width:'44px',
+                        height:'44px',
+                        borderRadius:'8px',
+                        background:p.color,
+                        display:'flex',
+                        alignItems:'center',
+                        justifyContent:'center'
+                      }}
+                    >
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"
+                          fill="white"
+                        />
+                      </svg>
+                    </div>
+
+                    <span className="p-name">{p.name}</span>
+
+                    <span className="p-arrow">
+                      Order here &rarr;
+                    </span>
+                  </a>
+                ))}
               </div>
             </div>
           )}
