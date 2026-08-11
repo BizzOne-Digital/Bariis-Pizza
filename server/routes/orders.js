@@ -2,33 +2,30 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const { protect } = require('../middleware/auth');
-const nodemailer = require('nodemailer');
 const { pushOrderToClover } = require('../utils/clover');
 
-// ─── Email Notification Helper ───────────────────────────────────────────────
+// ─── Email Notification Helper (Resend) ──────────────────────────────────────
 const sendOrderNotification = async (order) => {
   try {
-    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, NOTIFY_EMAIL } = process.env;
+    const { RESEND_API_KEY, NOTIFY_EMAIL } = process.env;
 
-    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !NOTIFY_EMAIL) return;
-
-    const transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: parseInt(SMTP_PORT) || 587,
-      secure: parseInt(SMTP_PORT) === 465,
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
-      tls: { rejectUnauthorized: false },
-    });
+    if (!RESEND_API_KEY || !NOTIFY_EMAIL) return;
 
     const itemsList = order.items
       .map(i => `• ${i.name}${i.size ? ` (${i.size})` : ''} x${i.quantity} — $${(i.price * i.quantity).toFixed(2)}`)
       .join('\n');
 
-    await transporter.sendMail({
-      from: `"Bariis Order System" <${SMTP_USER}>`,
-      to: NOTIFY_EMAIL,
-      subject: `New ${order.orderType} Order - ${order.customerName} ($${order.totalAmount.toFixed(2)})`,
-      text: `
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'Bariis Order System <orders@bariishalalpizza.com>',
+        to: [NOTIFY_EMAIL],
+        subject: `New ${order.orderType} Order - ${order.customerName} ($${order.totalAmount.toFixed(2)})`,
+        text: `
 NEW ORDER — Bariis Halal & Pizza House
 ==========================================
 
@@ -54,8 +51,11 @@ ${order.specialInstructions ? `SPECIAL INSTRUCTIONS\n--------------------\n${ord
 
 ==========================================
 Login to admin dashboard to manage this order.
-`,
+`
+      })
     });
+
+    if (!res.ok) throw new Error(`Resend request failed (${res.status})`);
 
     console.log(`✅ Order notification email sent to ${NOTIFY_EMAIL}`);
   } catch (err) {
