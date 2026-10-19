@@ -52,7 +52,9 @@ router.get('/', async (req, res) => {
 // ── Public: Get featured items ─────────────────────────────────────────────
 router.get('/featured', async (req, res) => {
   try {
-    const items = await MenuItem.find({ featured: true, available: true }).limit(8);
+    // Shawarma first; pizza excluded while it is "Coming Soon"
+    const items = await MenuItem.find({ featured: true, available: true, category: { $ne: 'pizza' } }).limit(8);
+    items.sort((a, b) => (b.category === 'shawarma') - (a.category === 'shawarma'));
     res.json(items);
   } catch (err) {
     res.status(500).json({ message: err.message });

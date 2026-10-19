@@ -5,10 +5,10 @@ import MenuCard from '../components/MenuCard';
 import { getFeaturedItems } from '../services/api';
 
 const WHY_US = [
-  { title: '100% Halal', desc: 'Every ingredient sourced and prepared under strict halal standards. Certified and verified.', img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80' },
+  { title: '100% Halal', desc: 'Every ingredient sourced and prepared under strict halal standards. Certified and verified.', img: '/food/family-tray.jpeg' },
   { title: 'Authentic Somali', desc: 'Traditional recipes passed through generations — Bariis, Suqaar, Hilib, Canjeero made the right way.', img: '/pic2.png' },
-  { title: 'Halal Pizza', desc: 'Fresh dough, premium halal toppings, wood-fired flavour. From classic to Somali-inspired creations.', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80' },
-  { title: 'Fast & Fresh', desc: 'Every order made to order. Dine-in, takeout, delivery and catering — we come to you.', img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80' },
+  { title: 'New: Halal Shawarma', desc: 'Our newest favourite — freshly made halal shawarma, packed with flavour. Order online for pickup or delivery.', img: '/food/shawarma.jpeg' },
+  { title: 'Fast & Fresh', desc: 'Every order made to order. Dine-in, takeout, delivery and catering — we come to you.', img: '/food/beef-suqaar-pasta.jpeg' },
 ];
 
 const SERVICES = [
@@ -27,17 +27,18 @@ const SERVICES = [
 ];
 
 const MENU_CATS = [
+  { label: 'Shawarma — New!', slug: 'shawarma', img: '/food/shawarma.jpeg', count: 'Order now for pickup or delivery' },
   { label: 'Somali Plates', slug: 'somali-plates', img: '/pic1.png', count: 'Bariis, Suqaar & more' },
-  { label: 'Pizza', slug: 'pizza', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80', count: 'Halal toppings' },
-  { label: 'Pasta', slug: 'pasta', img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=600&q=80', count: 'Fresh & hearty' },
+  { label: 'Pizza', slug: 'pizza', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80', count: 'Coming Soon – Not Currently Available', soon: true },
+  { label: 'Pasta', slug: 'pasta', img: '/food/spaghetti.jpeg', count: 'Fresh & hearty' },
   { label: 'Ugali & Fufu', slug: 'ugali-fufu', img: '/pic3.png', count: 'African staples' },
-  { label: 'Drinks', slug: 'drinks', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=80', count: 'Somali tea & more' },
+  { label: 'Drinks', slug: 'drinks', img: '/food/coffee.jpeg', count: 'Somali tea & more' },
   { label: 'Kids Menu', slug: 'kids-menu', img: 'https://images.unsplash.com/photo-1560717789-0ac7c58ac90a?w=600&q=80', count: 'For the little ones' },
 ];
 
 const REVIEWS = [
   { name: 'Amina H.', stars: 5, text: 'Best Somali food I have had outside of East Africa. The Bariis & Suqaar is absolutely incredible. Authentic flavours!' },
-  { name: 'James T.', stars: 5, text: 'Came for the pizza, stayed for the Sambusa. Everything is fresh and the staff are so welcoming. My new favourite spot.' },
+  { name: 'James T.', stars: 5, text: 'Came for the Suqaar, stayed for the Sambusa. Everything is fresh and the staff are so welcoming. My new favourite spot.' },
   { name: 'Fatima A.', stars: 5, text: 'So happy to have halal food in New Minas! The Canjeero with tea is perfect. We come every week now.' },
 ];
 
@@ -59,7 +60,7 @@ export default function Home() {
         }
         .hero-bg {
           position:absolute;inset:0;
-          background-image:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1400&q=80');
+          background-image:url('/food/family-tray.jpeg');
           background-size:cover;background-position:center;
           opacity:0.18;
         }
@@ -80,6 +81,25 @@ export default function Home() {
         .hero-img-main img,.hero-img-sm img { width:100%;height:100%;object-fit:cover; }
         .hero-img-label { position:absolute;bottom:10px;left:12px;font-family:var(--ff-display);font-size:0.95rem;font-weight:600;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.5); }
         .hero-img-wrap { position:relative; }
+        /* Shawarma promo banner */
+        .shawarma-promo { position:relative;overflow:hidden;background:linear-gradient(120deg,#7a2e0e 0%,#b5521b 55%,#d9822b 100%);color:white; }
+        .sp-inner { position:relative;z-index:1;display:grid;grid-template-columns:1.1fr 1fr;gap:2.5rem;align-items:center;padding:2.75rem 0; }
+        .sp-tag { display:inline-block;background:var(--gold);color:var(--green);font-weight:800;font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;padding:6px 14px;border-radius:50px;margin-bottom:1rem; }
+        .sp-inner h2 { font-family:var(--ff-display);font-size:clamp(2rem,4.6vw,3.4rem);font-weight:700;line-height:1.05;margin-bottom:0.9rem; }
+        .sp-inner h2 em { font-style:italic;color:#ffe2a8; }
+        .sp-inner p { font-size:1.02rem;color:rgba(255,255,255,0.85);line-height:1.65;margin-bottom:1.6rem;max-width:460px; }
+        .sp-ctas { display:flex;flex-wrap:wrap;gap:12px; }
+        .sp-btn { font-size:1.05rem;padding:16px 30px; }
+        .sp-photo { border-radius:var(--r-xl);overflow:hidden;aspect-ratio:4/3;box-shadow:0 18px 40px rgba(0,0,0,0.3);background:rgba(255,255,255,0.08); }
+        .sp-photo img { width:100%;height:100%;object-fit:cover; }
+        .cat-soon { position:absolute;top:12px;right:12px;background:var(--gold);color:var(--green);font-size:0.7rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:50px; }
+        @media(max-width:760px){
+          .sp-inner{grid-template-columns:1fr;gap:1.5rem;padding:2rem 0;text-align:center;}
+          .sp-photo{order:-1;}
+          .sp-inner p{margin-left:auto;margin-right:auto;}
+          .sp-ctas{justify-content:center;}
+          .sp-btn{width:100%;justify-content:center;}
+        }
         /* Grand Opening ribbon */
         .grand-open {
           background:var(--gold);color:var(--green);text-align:center;padding:10px 16px;
@@ -143,7 +163,7 @@ export default function Home() {
         .google-cta p { font-size:0.875rem;color:rgba(250,246,238,0.55); }
         /* CTA Section */
         .cta-section { background:linear-gradient(135deg,var(--green) 0%,var(--green-md) 100%);position:relative;overflow:hidden; }
-        .cta-section::before { content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=60') center/cover;opacity:0.07; }
+        .cta-section::before { content:'';position:absolute;inset:0;background:url('/food/family-tray.jpeg') center/cover;opacity:0.07; }
         .cta-inner { position:relative;z-index:1;text-align:center;padding:5rem 0; }
         .cta-inner h2 { font-family:var(--ff-display);font-size:clamp(2rem,4vw,3rem);color:white;margin-bottom:1rem; }
         .cta-inner h2 em { color:var(--gold);font-style:italic; }
@@ -170,6 +190,25 @@ export default function Home() {
         }
       `}</style>
 
+      {/* ── SHAWARMA PROMO BANNER ── */}
+      <section className="shawarma-promo">
+        <div className="container">
+          <div className="sp-inner">
+            <div>
+              <span className="sp-tag">New on the Menu</span>
+              <h2>Halal <em>Shawarma</em><br/>Is Here</h2>
+              <p>Freshly made, full of flavour and 100% halal. Order online now for pickup or delivery in New Minas.</p>
+              <div className="sp-ctas">
+                <Link to="/menu?cat=shawarma" className="btn btn-gold btn-lg sp-btn">Order Shawarma Now <IconArrow size={18}/></Link>
+              </div>
+            </div>
+            <div className="sp-photo">
+              <img src="/food/shawarma.jpeg" alt="Halal shawarma at Bariis & Pizza House" onError={e => { e.currentTarget.style.visibility = 'hidden'; }}/>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Grand Opening Banner */}
       <div className="grand-open">
         Grand Opening — Now Open in New Minas, Nova Scotia &nbsp;|&nbsp; Call: 902-3657-777
@@ -190,10 +229,10 @@ export default function Home() {
                 Grand Opening · New Minas, Nova Scotia
               </div>
               <h1>
-                Authentic <em>Somali Food</em><br/>& Halal Pizza
+                Authentic <em>Somali Food</em><br/>& Halal Shawarma
               </h1>
               <p className="hero-sub">
-                Experience the rich, aromatic flavours of Somalia — from fragrant Bariis and tender Suqaar to crispy Sambusa and freshly made halal pizza. Everything 100% halal, made with love.
+                Experience the rich, aromatic flavours of Somalia — from fragrant Bariis and tender Suqaar to crispy Sambusa and our new halal shawarma. Everything 100% halal, made with love.
               </p>
               <div className="hero-ctas">
                 <Link to="/order?type=pickup" className="btn btn-gold btn-lg">
@@ -218,15 +257,15 @@ export default function Home() {
             {/* Hero Visual Grid */}
             <div className="hero-visual anim-fade-up-3">
               <div className="hero-img-main hero-img-wrap">
-                <img src="https://images.unsplash.com/photo-1574484284002-952d92456975?w=800&q=80" alt="Bariis & Suqaar"/>
+                <img src="/food/goat-plate.jpeg" alt="Bariis & Suqaar"/>
                 <span className="hero-img-label">Bariis &amp; Suqaar</span>
               </div>
               <div className="hero-img-sm hero-img-wrap">
-                <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80" alt="Halal Pizza"/>
-                <span className="hero-img-label">Halal Pizza</span>
+                <img src="/food/chicken-suqaar-chapati.jpeg" alt="Chicken Suqaar"/>
+                <span className="hero-img-label">Chicken Suqaar</span>
               </div>
               <div className="hero-img-sm hero-img-wrap">
-                <img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80" alt="Sambusa"/>
+                <img src="/food/sambusa.jpeg" alt="Sambusa"/>
                 <span className="hero-img-label">Sambusa</span>
               </div>
             </div>
@@ -260,7 +299,7 @@ export default function Home() {
             {WHY_US.map(w => (
               <div key={w.title} className="why-card">
                 <div className="why-card-img">
-                  <img src={w.img} alt={w.title} loading="lazy"/>
+                  <img src={w.img} alt={w.title} loading="lazy" onError={e => { e.currentTarget.style.visibility = 'hidden'; }}/>
                 </div>
                 <div className="why-card-body">
                   <h3>{w.title}</h3>
@@ -285,8 +324,9 @@ export default function Home() {
           <div className="cat-grid">
             {MENU_CATS.map(c => (
               <Link to={`/menu?cat=${c.slug}`} key={c.slug} className="cat-card">
-                <img src={c.img} alt={c.label} loading="lazy"/>
+                <img src={c.img} alt={c.label} loading="lazy" onError={e => { e.currentTarget.style.visibility = 'hidden'; }} style={c.soon ? { filter:'grayscale(0.7)' } : undefined}/>
                 <div className="cat-card-overlay"/>
+                {c.soon && <span className="cat-soon">Coming Soon</span>}
                 <div className="cat-card-text">
                   <h3>{c.label}</h3>
                   <span>{c.count}</span>
@@ -326,10 +366,10 @@ export default function Home() {
           <div className="story-grid">
             <div className="story-img-stack">
               <div className="story-img-main">
-                <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80" alt="Somali cuisine spread"/>
+                <img src="/food/family-tray.jpeg" alt="Somali cuisine spread"/>
               </div>
               <div className="story-img-accent">
-                <img src="https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=80" alt="Somali tea"/>
+                <img src="/food/coffee.jpeg" alt="Somali tea and coffee"/>
               </div>
             </div>
             <div className="story-text">
@@ -339,7 +379,7 @@ export default function Home() {
                 Bariis & Pizza House was founded on a simple belief — that everyone deserves access to delicious, authentic, and truly halal food. We brought the rich culinary traditions of Somalia to the heart of Nova Scotia's Annapolis Valley.
               </p>
               <p>
-                Our kitchen is where heritage meets creativity. Every pot of Bariis is seasoned the way grandmothers in Mogadishu would, every Sambusa is filled and fried with pride, and every pizza is topped with care under halal standards.
+                Our kitchen is where heritage meets creativity. Every pot of Bariis is seasoned the way grandmothers in Mogadishu would, every Sambusa is filled and fried with pride, and every shawarma is made fresh to order under halal standards.
               </p>
               <div className="story-checks">
                 {['100% Halal certified — every single ingredient', 'Authentic Somali recipes, made fresh daily', 'Warm, welcoming space for the whole family', 'Proudly serving New Minas & Annapolis Valley'].map(t => (

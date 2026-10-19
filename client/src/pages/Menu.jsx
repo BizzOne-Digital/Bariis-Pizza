@@ -5,21 +5,23 @@ import MenuCard from '../components/MenuCard';
 import { getMenuItems } from '../services/api';
 
 const SECTIONS = [
-  { key: 'all',             label: 'All Items',          img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70' },
+  { key: 'all',             label: 'All Items',          img: '/food/family-tray.jpeg' },
+  { key: 'shawarma',        label: 'Shawarma — New!',    img: '/food/shawarma.jpeg' },
   { key: 'somali-plates',   label: 'Somali Plates',      img: '/pic1.png' },
-  { key: 'pizza',           label: 'Pizza',              img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=70' },
-  { key: 'pasta',           label: 'Pasta',              img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400&q=70' },
+  { key: 'pizza',           label: 'Pizza (Coming Soon)', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=70' },
+  { key: 'pasta',           label: 'Pasta',              img: '/food/spaghetti.jpeg' },
   { key: 'ugali-fufu',      label: 'Ugali & Fufu',       img: '/pic3.png' },
-  { key: 'drinks',          label: 'Drinks',             img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=70' },
+  { key: 'drinks',          label: 'Drinks',             img: '/food/coffee.jpeg' },
   { key: 'kids-menu',       label: 'Kids Menu',          img: 'https://images.unsplash.com/photo-1560717789-0ac7c58ac90a?w=400&q=70' },
 ];
 
 const SEC_HEADERS = {
+  'shawarma':      { title: 'Shawarma — New!', sub: 'Freshly made halal shawarma — order now for pickup or delivery', img: '/food/shawarma.jpeg' },
   'somali-plates': { title: 'Somali Plates', sub: 'Authentic Somali rice dishes — Bariis, Suqaar, Hilib & more', img: '/pic1.png' },
-  'pizza':         { title: 'Pizza',         sub: 'Fresh dough, premium halal toppings, made to order', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=80' },
-  'pasta':         { title: 'Pasta',         sub: 'Classic pasta dishes made with fresh ingredients', img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=1200&q=80' },
+  'pizza':         { title: 'Pizza — Coming Soon', sub: 'Not currently available. Halal pizza is on its way — stay tuned!', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=80' },
+  'pasta':         { title: 'Pasta',         sub: 'Classic pasta dishes made with fresh ingredients', img: '/food/spaghetti.jpeg' },
   'ugali-fufu':    { title: 'Ugali & Fufu',  sub: 'Traditional East & West African staples, made fresh daily', img: '/pic3.png' },
-  'drinks':        { title: 'Drinks',        sub: 'Somali spiced tea, fresh juices and cold drinks', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=1200&q=80' },
+  'drinks':        { title: 'Drinks',        sub: 'Somali spiced tea, fresh juices and cold drinks', img: '/food/coffee.jpeg' },
   'kids-menu':     { title: 'Kids Menu',     sub: 'Smaller portions, big flavours — perfect for little ones', img: 'https://images.unsplash.com/photo-1560717789-0ac7c58ac90a?w=1200&q=80' },
 };
 
@@ -108,7 +110,7 @@ export default function MenuPage() {
       {/* Hero */}
       <div className="menu-hero">
         <div className="menu-hero-bg">
-          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1400&q=80" alt="Our Menu"/>
+          <img src="/food/family-tray.jpeg" alt="Our Menu"/>
         </div>
         <div className="menu-hero-overlay"/>
         <div className="menu-hero-text">
@@ -138,7 +140,7 @@ export default function MenuPage() {
         <div className="cat-tabs">
           {SECTIONS.map(s => (
             <button key={s.key} className={`cat-tab${active === s.key ? ' active' : ''}`} onClick={() => switchTab(s.key)}>
-              <img src={s.img} alt={s.label}/>
+              <img src={s.img} alt={s.label} onError={e => { e.currentTarget.style.visibility = 'hidden'; }}/>
               {s.label}
             </button>
           ))}
@@ -161,7 +163,7 @@ export default function MenuPage() {
             <div key={group.key} className="menu-section" ref={el => sectionRefs.current[group.key] = el}>
               {/* Section Header with image */}
               <div className="section-head">
-                <img src={hdr.img || group.img} alt={group.label} loading="lazy"/>
+                <img src={hdr.img || group.img} alt={group.label} loading="lazy" onError={e => { e.currentTarget.style.visibility = 'hidden'; }}/>
                 <div className="section-head-overlay"/>
                 <div className="section-head-content">
                   <div>

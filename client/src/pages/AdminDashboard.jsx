@@ -17,6 +17,7 @@ const CATEGORIES = [
   { key: 'pizza',         label: 'Pizza' },
   { key: 'pasta',         label: 'Pasta' },
   { key: 'ugali-fufu',    label: 'Ugali & Fufu' },
+  { key: 'shawarma',      label: 'Shawarma' },
   { key: 'drinks',        label: 'Drinks' },
   { key: 'kids-menu',     label: 'Kids Menu' },
 ];

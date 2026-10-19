@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { IconPlus, IconStar } from './Icons';
-import { useCart } from '../context/CartContext';
+import { useCart, isPizza } from '../context/CartContext';
 import toast from 'react-hot-toast';
 
 const API = process.env.REACT_APP_API_URL?.replace('/api','') || 'http://localhost:5000';
@@ -10,6 +10,9 @@ const FALLBACKS = {
   'somali-rice':       'https://images.unsplash.com/photo-1574484284002-952d92456975?w=500&q=80',
   'somali-specialties':'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80',
   'pizza':             'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80',
+  'shawarma':          '/food/chicken-suqaar-chapati.jpeg',
+  'somali-plates':     '/food/goat-plate.jpeg',
+  'pasta':             '/food/spaghetti.jpeg',
   'sambusa-snacks':    'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500&q=80',
   'sides':             'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80',
   'drinks':            'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&q=80',
@@ -27,12 +30,12 @@ export default function MenuCard({ item }) {
     : (FALLBACKS[item.category] || FALLBACKS['somali-rice']);
 
   const handleAdd = () => {
-    addItem({ _id: item._id, name: item.name, price, image: item.image, size: selectedSize?.label || null });
+    addItem({ _id: item._id, name: item.name, category: item.category, price, image: item.image, size: selectedSize?.label || null });
     toast.success(`${item.name} added to cart`);
   };
 
   return (
-    <article className="menu-card">
+    <article className={`menu-card${isPizza(item) ? ' is-soon' : ''}`}>
       <style>{`
         .menu-card { background:var(--white);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);border:1px solid rgba(0,0,0,0.05);display:flex;flex-direction:column;transition:all var(--dur) var(--ease); }
         .menu-card:hover { transform:translateY(-5px);box-shadow:var(--sh-md); }
@@ -51,6 +54,8 @@ export default function MenuCard({ item }) {
         .mc-add { display:flex;align-items:center;gap:5px;padding:8px 16px;border-radius:50px;background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--green);font-weight:700;font-size:0.8rem;transition:all 0.2s;cursor:pointer;border:none;font-family:var(--ff-body); }
         .mc-add:hover { transform:scale(1.05);box-shadow:var(--sh-gold); }
         .mc-unavail { font-size:0.78rem;color:var(--muted);padding:6px 12px;border:1px solid #ddd;border-radius:20px; }
+        .mc-soon { color:var(--gold-dk);border-color:var(--gold);font-weight:600;text-align:center;line-height:1.3; }
+        .menu-card.is-soon .mc-img img { filter:grayscale(0.6); }
       `}</style>
 
       <div className="mc-img">
@@ -92,7 +97,9 @@ export default function MenuCard({ item }) {
 
         <div className="mc-footer">
           <span className="mc-price">${price.toFixed(2)}</span>
-          {item.available
+          {isPizza(item)
+            ? <span className="mc-unavail mc-soon">Coming Soon – Not Currently Available</span>
+            : item.available
             ? <button className="mc-add" onClick={handleAdd}><IconPlus size={13}/> Add to Cart</button>
             : <span className="mc-unavail">Currently Unavailable</span>
           }

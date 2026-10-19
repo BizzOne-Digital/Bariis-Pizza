@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
+const MenuItem = require('../models/MenuItem');
 const { protect } = require('../middleware/auth');
 const { pushOrderToClover } = require('../utils/clover');
 
@@ -68,6 +69,14 @@ Login to admin dashboard to manage this order.
 // Public: Place order
 router.post('/', async (req, res) => {
   try {
+    // Pizza is "Coming Soon" — reject any order containing pizza items
+    const ids = (req.body.items || []).map(i => i.menuItem).filter(Boolean);
+    if (ids.length) {
+      const pizza = await MenuItem.findOne({ _id: { $in: ids }, $or: [{ category: 'pizza' }, { name: /pizza/i }] });
+      if (pizza) {
+        return res.status(400).json({ message: 'Pizza is coming soon and not currently available. Please remove it from your cart.' });
+      }
+    }
     const order = await Order.create(req.body);
     sendOrderNotification(order);
     res.status(201).json(order);

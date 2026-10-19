@@ -3,9 +3,13 @@ import React, { createContext, useContext, useReducer } from 'react';
 const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
 
+// Pizza is "Coming Soon" — covers the pizza category plus pizza items in other categories (kids, combos)
+export const isPizza = (item) => item?.category === 'pizza' || /pizza/i.test(item?.name || '');
+
 const cartReducer = (state, action) => {
   switch (action.type) {
     case 'ADD_ITEM': {
+      if (isPizza(action.item)) return state;
       const existing = state.items.find(i => i._id === action.item._id && i.size === action.item.size);
       if (existing) {
         return { ...state, items: state.items.map(i =>
