@@ -91,7 +91,7 @@ export default function Home() {
         .sp-ctas { display:flex;flex-wrap:wrap;gap:12px; }
         .sp-btn { font-size:1rem;padding:13px 26px; }
         .sp-photo { border-radius:var(--r-xl);overflow:hidden;aspect-ratio:16/9;max-height:260px;width:100%;box-shadow:0 18px 40px rgba(0,0,0,0.3);background:rgba(255,255,255,0.08); }
-        .sp-photo img { width:100%;height:100%;object-fit:cover; }
+        .sp-photo img { display:block;width:100%;height:100%;object-fit:cover;object-position:center; }
         .cat-soon { position:absolute;top:12px;right:12px;background:var(--gold);color:var(--green);font-size:0.7rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:50px; }
         @media(max-width:760px){
           .sp-inner{grid-template-columns:1fr;gap:1.5rem;padding:1.5rem 0;text-align:center;}
@@ -267,7 +267,7 @@ export default function Home() {
               </div>
             </div>
             <div className="sp-photo">
-              <img src="/food/shawarma.jpeg" alt="Halal shawarma at Bariis & Pizza House" onError={e => { e.currentTarget.style.visibility = 'hidden'; }}/>
+              <img src="/food/shawarma.jpeg" alt="Fresh halal chicken shawarma wraps with vegetables and garlic sauce" width="1440" height="720" loading="lazy" decoding="async"/>
             </div>
           </div>
         </div>

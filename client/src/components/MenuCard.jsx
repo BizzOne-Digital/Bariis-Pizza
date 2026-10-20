@@ -10,7 +10,7 @@ const FALLBACKS = {
   'somali-rice':       'https://images.unsplash.com/photo-1574484284002-952d92456975?w=500&q=80',
   'somali-specialties':'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80',
   'pizza':             'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80',
-  'shawarma':          '/food/chicken-suqaar-chapati.jpeg',
+  'shawarma':          '/food/shawarma.jpeg',
   'somali-plates':     '/food/goat-plate.jpeg',
   'pasta':             '/food/spaghetti.jpeg',
   'sambusa-snacks':    'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500&q=80',
