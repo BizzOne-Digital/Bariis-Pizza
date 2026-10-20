@@ -83,18 +83,18 @@ export default function Home() {
         .hero-img-wrap { position:relative; }
         /* Shawarma promo banner */
         .shawarma-promo { position:relative;overflow:hidden;background:linear-gradient(120deg,#7a2e0e 0%,#b5521b 55%,#d9822b 100%);color:white; }
-        .sp-inner { position:relative;z-index:1;display:grid;grid-template-columns:1.1fr 1fr;gap:2.5rem;align-items:center;padding:2.75rem 0; }
+        .sp-inner { position:relative;z-index:1;display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:center;padding:1.75rem 0; }
         .sp-tag { display:inline-block;background:var(--gold);color:var(--green);font-weight:800;font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;padding:6px 14px;border-radius:50px;margin-bottom:1rem; }
-        .sp-inner h2 { font-family:var(--ff-display);font-size:clamp(2rem,4.6vw,3.4rem);font-weight:700;line-height:1.05;margin-bottom:0.9rem; }
+        .sp-inner h2 { font-family:var(--ff-display);font-size:clamp(1.8rem,3.6vw,2.6rem);font-weight:700;line-height:1.05;margin-bottom:0.6rem; }
         .sp-inner h2 em { font-style:italic;color:#ffe2a8; }
-        .sp-inner p { font-size:1.02rem;color:rgba(255,255,255,0.85);line-height:1.65;margin-bottom:1.6rem;max-width:460px; }
+        .sp-inner p { font-size:1.02rem;color:rgba(255,255,255,0.85);line-height:1.65;margin-bottom:1.1rem;max-width:460px; }
         .sp-ctas { display:flex;flex-wrap:wrap;gap:12px; }
-        .sp-btn { font-size:1.05rem;padding:16px 30px; }
-        .sp-photo { border-radius:var(--r-xl);overflow:hidden;aspect-ratio:4/3;box-shadow:0 18px 40px rgba(0,0,0,0.3);background:rgba(255,255,255,0.08); }
+        .sp-btn { font-size:1rem;padding:13px 26px; }
+        .sp-photo { border-radius:var(--r-xl);overflow:hidden;aspect-ratio:16/9;max-height:260px;width:100%;box-shadow:0 18px 40px rgba(0,0,0,0.3);background:rgba(255,255,255,0.08); }
         .sp-photo img { width:100%;height:100%;object-fit:cover; }
         .cat-soon { position:absolute;top:12px;right:12px;background:var(--gold);color:var(--green);font-size:0.7rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:50px; }
         @media(max-width:760px){
-          .sp-inner{grid-template-columns:1fr;gap:1.5rem;padding:2rem 0;text-align:center;}
+          .sp-inner{grid-template-columns:1fr;gap:1.5rem;padding:1.5rem 0;text-align:center;}
           .sp-photo{order:-1;}
           .sp-inner p{margin-left:auto;margin-right:auto;}
           .sp-ctas{justify-content:center;}
@@ -190,25 +190,6 @@ export default function Home() {
         }
       `}</style>
 
-      {/* ── SHAWARMA PROMO BANNER ── */}
-      <section className="shawarma-promo">
-        <div className="container">
-          <div className="sp-inner">
-            <div>
-              <span className="sp-tag">New on the Menu</span>
-              <h2>Halal <em>Shawarma</em><br/>Is Here</h2>
-              <p>Freshly made, full of flavour and 100% halal. Order online now for pickup or delivery in New Minas.</p>
-              <div className="sp-ctas">
-                <Link to="/menu?cat=shawarma" className="btn btn-gold btn-lg sp-btn">Order Shawarma Now <IconArrow size={18}/></Link>
-              </div>
-            </div>
-            <div className="sp-photo">
-              <img src="/food/shawarma.jpeg" alt="Halal shawarma at Bariis & Pizza House" onError={e => { e.currentTarget.style.visibility = 'hidden'; }}/>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Grand Opening Banner */}
       <div className="grand-open">
         Grand Opening — Now Open in New Minas, Nova Scotia &nbsp;|&nbsp; Call: 902-3657-777
@@ -268,6 +249,25 @@ export default function Home() {
                 <img src="/food/sambusa.jpeg" alt="Sambusa"/>
                 <span className="hero-img-label">Sambusa</span>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SHAWARMA PROMO BANNER ── */}
+      <section className="shawarma-promo">
+        <div className="container">
+          <div className="sp-inner">
+            <div>
+              <span className="sp-tag">New on the Menu</span>
+              <h2>Halal <em>Shawarma</em><br/>Is Here</h2>
+              <p>Freshly made, full of flavour and 100% halal. Order online now for pickup or delivery in New Minas.</p>
+              <div className="sp-ctas">
+                <Link to="/menu?cat=shawarma" className="btn btn-gold btn-lg sp-btn">Order Shawarma Now <IconArrow size={18}/></Link>
+              </div>
+            </div>
+            <div className="sp-photo">
+              <img src="/food/shawarma.jpeg" alt="Halal shawarma at Bariis & Pizza House" onError={e => { e.currentTarget.style.visibility = 'hidden'; }}/>
             </div>
           </div>
         </div>
